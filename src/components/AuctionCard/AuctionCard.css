@@ -1,0 +1,254 @@
+/* =========================================================
+   AUCTION CARD
+========================================================= */
+
+.auction-card {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+
+  border: 1px solid #c4d2ca;
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.auction-card:hover {
+  transform: translateY(-3px);
+
+  box-shadow: 0 6px 15px rgba(7, 93, 56, 0.12);
+}
+
+/* =========================================================
+   AUCTION CARD IMAGE
+========================================================= */
+
+.auction-card-image {
+  position: relative;
+
+  width: 100%;
+  height: 128px;
+
+  overflow: hidden;
+
+  background: #edf3ef;
+}
+
+.auction-card-image img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+}
+
+/* =========================================================
+   HEART
+========================================================= */
+
+.auction-heart {
+  position: absolute;
+
+  top: 8px;
+  right: 8px;
+
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(0, 0, 0, 0.78);
+
+  color: #ffffff;
+
+  font-size: 14px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.auction-heart:hover {
+  background: #075d38;
+
+  transform: scale(1.05);
+}
+
+/* =========================================================
+   CARD CONTENT
+========================================================= */
+
+.auction-card-content {
+  width: 100%;
+  min-width: 0;
+
+  padding: 10px;
+
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   PRODUCT TITLE
+========================================================= */
+
+.auction-card-content h3 {
+  margin: 0 0 6px;
+
+  overflow: hidden;
+
+  color: #202020;
+
+  font-size: 16px;
+  font-weight: 700;
+
+  line-height: 1.25;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* =========================================================
+   CATEGORY
+========================================================= */
+
+.auction-card-content .auction-category {
+  margin: 0 0 7px;
+
+  color: #07864c;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  line-height: 1.35;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =========================================================
+   SELLER
+========================================================= */
+
+.auction-card-content .auction-seller {
+  margin: 0 0 9px;
+
+  color: #686868;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  line-height: 1.3;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =========================================================
+   TIME LEFT
+========================================================= */
+
+.auction-card-content .auction-card-details {
+  width: 100%;
+
+  display: flex;
+  align-items: flex-start;
+
+  margin: 0 0 9px;
+}
+
+.auction-card-content .auction-card-details > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.auction-card-content .auction-card-details span {
+  margin: 0 0 3px;
+
+  color: #777777;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  font-size: 11px;
+  font-weight: 500;
+
+  line-height: 1.25;
+}
+
+.auction-card-content .auction-card-details strong {
+  color: #075d38;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  line-height: 1.25;
+}
+
+/* =========================================================
+   REGISTER BUTTON
+========================================================= */
+
+.auction-card-content .auction-register {
+  width: 100%;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0;
+  padding: 0;
+
+  border: none;
+  border-radius: 6px;
+
+  background: #075d38;
+
+  color: #ffffff;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  box-sizing: border-box;
+
+  visibility: visible;
+  opacity: 1;
+}
+
+.auction-card-content .auction-register:hover {
+  background: #064b2e;
+  color: #ffffff;
+}

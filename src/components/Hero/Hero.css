@@ -1,0 +1,306 @@
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero {
+  position: relative;
+
+  width: calc(100% - 60px);
+  min-height: 390px;
+
+  margin-left: 30px;
+  margin-right: 30px;
+
+  display: flex;
+  align-items: center;
+
+  overflow: hidden;
+
+  border-radius: 20px;
+
+  background: linear-gradient(
+    105deg,
+    #f1fff5 0%,
+    #e5f0e6 42%,
+    #d2dfd3 70%,
+    #b8cbbd 100%
+  );
+}
+
+/* =========================================================
+   HERO CONTENT
+========================================================= */
+
+.hero-copy {
+  position: relative;
+
+  z-index: 5;
+
+  width: 48%;
+
+  padding-left: clamp(40px, 5vw, 90px);
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+.hero h1 {
+  margin: 0;
+
+  font-size: clamp(34px, 3vw, 48px);
+
+  line-height: 1.1;
+
+  font-weight: 500;
+
+  letter-spacing: -1.2px;
+}
+
+.hero h1 span {
+  color: var(--green);
+
+  font-weight: 800;
+}
+
+.hero-copy p {
+  margin: 14px 0 26px;
+
+  font-size: clamp(12px, 1vw, 16px);
+
+  line-height: 1.45;
+
+  color: #1f1f1f;
+}
+
+/* =========================================================
+   HERO BUTTONS
+========================================================= */
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 16px;
+}
+
+.primary-btn {
+  border: none;
+
+  padding: 12px 21px;
+
+  border-radius: 20px;
+
+  color: white;
+  background: var(--green);
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.primary-btn:hover {
+  background: var(--green-dark);
+}
+
+.secondary-btn {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 9px 15px;
+
+  border: 1px solid #7da993;
+  border-radius: 20px;
+
+  background: #d9ebde;
+  color: var(--green);
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.play-circle {
+  width: 21px;
+  height: 21px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: white;
+  color: var(--green);
+}
+
+/* =========================================================
+   HERO IMAGE
+========================================================= */
+
+.hero-art {
+  position: absolute;
+
+  top: 0;
+  right: 5%;
+  bottom: 0;
+
+  width: 58%;
+  height: 100%;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+
+  z-index: 2;
+
+  pointer-events: none;
+}
+
+.header-image {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: contain;
+  object-position: right bottom;
+}
+
+/* =========================================================
+   LARGE SCREEN
+========================================================= */
+
+@media (min-width: 1601px) {
+  .hero {
+    min-height: 430px;
+  }
+
+  .hero-copy {
+    padding-left: 90px;
+  }
+
+  .hero h1 {
+    font-size: 52px;
+  }
+
+  .hero-copy p {
+    font-size: 16px;
+  }
+
+  .hero-art {
+    width: 60%;
+  }
+}
+
+/* =========================================================
+   LAPTOP
+========================================================= */
+
+@media (max-width: 1200px) {
+  .hero-art {
+    width: 56%;
+  }
+
+  .hero-copy {
+    width: 50%;
+  }
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+  .hero {
+    width: calc(100% - 60px);
+
+    margin-left: 30px;
+    margin-right: 30px;
+
+    min-height: 500px;
+  }
+
+  .hero-copy {
+    width: 65%;
+
+    align-self: flex-start;
+
+    padding-top: 45px;
+  }
+
+  .hero-art {
+    width: 70%;
+    height: 65%;
+  }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+  .hero {
+    width: calc(100% - 60px);
+
+    margin-left: 30px;
+    margin-right: 30px;
+
+    min-height: 510px;
+
+    align-items: flex-start;
+  }
+
+  .hero-copy {
+    width: 100%;
+
+    padding: 32px 24px;
+
+    z-index: 5;
+  }
+
+  .hero h1 {
+    font-size: 30px;
+  }
+
+  .hero-copy p {
+    font-size: 11px;
+  }
+
+  .hero-actions {
+    flex-wrap: wrap;
+  }
+
+  .hero-art {
+    width: 100%;
+    height: 55%;
+
+    top: auto;
+    right: 0;
+  }
+}
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 420px) {
+  .hero {
+    width: calc(100% - 60px);
+
+    margin-left: 30px;
+    margin-right: 30px;
+
+    min-height: 480px;
+  }
+
+  .hero h1 {
+    font-size: 27px;
+  }
+
+  .hero-copy p br {
+    display: none;
+  }
+
+  .hero-art {
+    height: 48%;
+  }
+}

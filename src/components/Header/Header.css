@@ -1,0 +1,439 @@
+/* =========================================================
+   HEADER
+========================================================= */
+
+.header {
+  min-height: 100px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 28px;
+
+  padding-top: 15px;
+  padding-bottom: 15px;
+
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   BRAND
+========================================================= */
+
+.brand {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  min-width: 205px;
+
+  height: 44px;
+}
+
+.brand-mark {
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #dff3e8;
+  color: var(--green);
+
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-size: 22px;
+  font-weight: 800;
+
+  line-height: 1;
+}
+
+.brand-name span {
+  color: #07864c;
+}
+
+.brand-tag {
+  margin-top: 4px;
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+/* =========================================================
+   SEARCH WRAPPER
+========================================================= */
+
+.search-wrap {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  width: min(350px, 25vw);
+
+  height: 34px;
+}
+
+/* =========================================================
+   CATEGORY
+========================================================= */
+
+.category-wrapper {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  height: 34px;
+
+  flex-shrink: 0;
+}
+
+.menu-circle {
+  width: 32px;
+  height: 32px;
+
+  border: none;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  color: white;
+  background: #087d46;
+
+  flex-shrink: 0;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.menu-circle:hover {
+  background: var(--green-dark);
+}
+
+.menu-circle:active {
+  transform: scale(0.95);
+}
+
+/* =========================================================
+   CATEGORY MENU
+========================================================= */
+
+.category-menu {
+  position: absolute;
+
+  top: calc(100% + 8px);
+  left: 0;
+
+  width: 215px;
+
+  padding: 7px;
+
+  border: 1px solid #d2e1d8;
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  box-shadow: 0 10px 25px rgba(0, 60, 35, 0.14);
+
+  z-index: 1000;
+}
+
+.category-option {
+  width: 100%;
+
+  display: block;
+
+  padding: 10px 12px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: transparent;
+  color: #355b49;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.category-option:hover {
+  background: #eef7f1;
+  color: var(--green);
+}
+
+.category-option.selected {
+  background: #dff3e8;
+  color: var(--green);
+}
+
+/* =========================================================
+   SEARCH BOX
+========================================================= */
+
+.search-box {
+  width: 100%;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+
+  background: #f2f2f2;
+
+  border-radius: 20px;
+
+  padding-left: 15px;
+}
+
+.search-box input {
+  width: 100%;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+  color: var(--text);
+
+  font-size: 12px;
+}
+
+.search-box input::placeholder {
+  color: #8a8a8a;
+  opacity: 0.65;
+}
+
+.search-box button {
+  width: 36px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+  color: #6b7b2b;
+
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   LOCATION
+========================================================= */
+
+.location-wrapper {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  height: 42px;
+
+  flex-shrink: 0;
+}
+
+.location-display {
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  padding: 5px 9px;
+
+  border: 1px solid #c8dcd0;
+  border-radius: 10px;
+
+  background: #eef7f1;
+  color: var(--green);
+}
+
+.location-info {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  white-space: nowrap;
+}
+
+.location-code {
+  font-size: 13px;
+  font-weight: 700;
+
+  color: #355b49;
+}
+
+.location-name {
+  position: relative;
+
+  max-width: 85px;
+
+  padding-left: 8px;
+
+  overflow: hidden;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  color: #355b49;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.location-name::before {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  top: 50%;
+
+  width: 1px;
+  height: 16px;
+
+  transform: translateY(-50%);
+
+  background: #a9c3b4;
+}
+
+.location-flag {
+  width: 24px;
+  height: 17px;
+
+  display: block;
+
+  object-fit: cover;
+
+  border-radius: 2px;
+
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+.nav-links {
+  display: flex;
+  align-items: center;
+
+  gap: clamp(15px, 2vw, 35px);
+
+  margin-left: auto;
+
+  height: 34px;
+}
+
+.nav-link {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  height: 100%;
+
+  padding: 0;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  color: #355b49;
+
+  white-space: nowrap;
+
+  text-decoration: none;
+
+  cursor: pointer;
+}
+
+.nav-link::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  bottom: 0;
+
+  width: 0;
+  height: 2px;
+
+  border-radius: 2px;
+
+  background: var(--green);
+
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover {
+  color: var(--green);
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.nav-link.active {
+  color: var(--green);
+}
+
+.nav-link.active::after {
+  width: 100%;
+}
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+.login-btn {
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  padding: 0 32px;
+
+  border-radius: 20px;
+
+  color: white;
+  background: var(--green);
+
+  font-size: 12px;
+  font-weight: 700;
+
+  line-height: 1;
+
+  white-space: nowrap;
+
+  flex-shrink: 0;
+}
+
+.login-btn:hover {
+  background: var(--green-dark);
+}
