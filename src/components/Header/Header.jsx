@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+
 import Icon from "../Icon/Icon";
+
 import "./Header.css";
 
-export default function Header() {
+export default function Header({ onLogin }) {
   const [activeLink, setActiveLink] = useState("Home");
 
   const [location, setLocation] = useState({
@@ -12,7 +14,12 @@ export default function Header() {
   });
 
   const [showCategories, setShowCategories] = useState(false);
+
   const [selectedCategory, setSelectedCategory] = useState("");
+
+  // ==========================================
+  // CATEGORIES
+  // ==========================================
 
   const categories = [
     "All Categories",
@@ -25,6 +32,10 @@ export default function Header() {
     "Industrial Equipment",
     "Agriculture",
   ];
+
+  // ==========================================
+  // GET USER LOCATION
+  // ==========================================
 
   useEffect(() => {
     fetch("https://ipapi.co/json/")
@@ -41,7 +52,9 @@ export default function Header() {
 
           setLocation({
             code: data.country_code,
+
             name: data.country_name,
+
             flag: `https://flagcdn.com/w40/${countryCode}.png`,
           });
         }
@@ -49,11 +62,17 @@ export default function Header() {
       .catch(() => {
         setLocation({
           code: "--",
+
           name: "Unknown",
+
           flag: "",
         });
       });
   }, []);
+
+  // ==========================================
+  // CATEGORY SELECT
+  // ==========================================
 
   const handleCategorySelect = (category) => {
     if (category === "All Categories") {
@@ -65,23 +84,42 @@ export default function Header() {
     setShowCategories(false);
   };
 
+  // ==========================================
+  // NAVIGATION
+  // ==========================================
+
+  const handleNavClick = (link) => {
+    setActiveLink(link);
+  };
+
   return (
     <header className="header page-container">
-      <a href="/" className="brand">
+      {/* ========================================
+          BRAND
+      ======================================== */}
+
+      <a href="/" className="brand" onClick={() => handleNavClick("Home")}>
         <div className="brand-mark">
           <Icon name="hammer" size={25} />
         </div>
 
         <div>
           <div className="brand-name">
-            <span>e</span>Auction
+            <span>e</span>
+            Auction
           </div>
 
           <div className="brand-tag">Bid More, Win More</div>
         </div>
       </a>
 
+      {/* ========================================
+          SEARCH
+      ======================================== */}
+
       <div className="search-wrap">
+        {/* CATEGORY */}
+
         <div className="category-wrapper">
           <button
             className="menu-circle"
@@ -110,6 +148,8 @@ export default function Header() {
           )}
         </div>
 
+        {/* SEARCH BOX */}
+
         <div className="search-box">
           <input
             type="text"
@@ -126,6 +166,10 @@ export default function Header() {
           </button>
         </div>
       </div>
+
+      {/* ========================================
+          LOCATION
+      ======================================== */}
 
       <div className="location-wrapper">
         <div className="location-display">
@@ -145,11 +189,15 @@ export default function Header() {
         </div>
       </div>
 
+      {/* ========================================
+          NAVIGATION
+      ======================================== */}
+
       <nav className="nav-links">
         <a
           href="/"
           className={`nav-link ${activeLink === "Home" ? "active" : ""}`}
-          onClick={() => setActiveLink("Home")}
+          onClick={() => handleNavClick("Home")}
         >
           Home
         </a>
@@ -157,7 +205,7 @@ export default function Header() {
         <a
           href="/auctions"
           className={`nav-link ${activeLink === "Auctions" ? "active" : ""}`}
-          onClick={() => setActiveLink("Auctions")}
+          onClick={() => handleNavClick("Auctions")}
         >
           Auctions
         </a>
@@ -167,7 +215,7 @@ export default function Header() {
           className={`nav-link ${
             activeLink === "How It Works" ? "active" : ""
           }`}
-          onClick={() => setActiveLink("How It Works")}
+          onClick={() => handleNavClick("How It Works")}
         >
           How It Works
         </a>
@@ -177,14 +225,18 @@ export default function Header() {
           className={`nav-link ${
             activeLink === "FAQ & Support" ? "active" : ""
           }`}
-          onClick={() => setActiveLink("FAQ & Support")}
+          onClick={() => handleNavClick("FAQ & Support")}
         >
           FAQ &amp; Support
         </a>
       </nav>
 
-      <button className="login-btn" type="button">
-        Login
+      {/* ========================================
+          LOGIN
+      ======================================== */}
+
+      <button className="login-btn" type="button" onClick={onLogin}>
+        SignUp/Login
       </button>
     </header>
   );

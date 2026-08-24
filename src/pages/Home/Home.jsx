@@ -7,22 +7,25 @@ import TrustBar from "../../components/TrustBar/TrustBar";
 
 import "./Home.css";
 
-export default function Home() {
+export default function Home({ onLogin }) {
   return (
     <>
-      <Header />
+      <Header onLogin={onLogin} />
 
-      <Hero />
+      <main>
+        <Hero />
 
-      <div className="auction-content">
-        <div className="auction-left">
-          <TrendingAuctions />
+        <div className="auction-content">
+          <div className="auction-left">
+            <TrendingAuctions />
+          </div>
         </div>
-      </div>
 
-      <TrustBar />
+        <TrustBar />
 
-      <HowItWorks />
+        <HowItWorks />
+      </main>
+
       <Footer />
     </>
   );

@@ -1,23 +1,58 @@
-/* =========================================================
-   HOME AUCTION CONTENT
-========================================================= */
+/* =========================================
+   HOME PAGE
+========================================= */
+
+.home {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* =========================================
+   MAIN CONTENT
+========================================= */
+
+main {
+  width: 100%;
+}
+
+/* =========================================
+   AUCTION CONTENT
+========================================= */
 
 .auction-content {
-  width: calc(100% - 60px);
+  width: 100%;
+  max-width: 1400px;
 
-  margin-left: 30px;
-  margin-right: 30px;
+  margin: 0 auto;
 
-  display: block;
+  padding: 20px 40px 60px;
 
   box-sizing: border-box;
 }
 
-/* =========================================================
-   AUCTION LEFT
-========================================================= */
-
 .auction-left {
   width: 100%;
-  min-width: 0;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1200px) {
+  .auction-content {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+}
+
+@media (max-width: 768px) {
+  .auction-content {
+    padding: 16px 20px 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auction-content {
+    padding: 12px 14px 30px;
+  }
 }
