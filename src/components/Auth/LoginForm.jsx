@@ -2,8 +2,28 @@ import { useState } from "react";
 
 import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 
-export default function LoginForm({ setActiveTab }) {
+export default function LoginForm({ setActiveTab, onLoginSuccess }) {
   const [showPassword, setShowPassword] = useState(false);
+
+  /* =========================
+     TEMPORARY SIGN IN
+  ========================= */
+
+  const handleLogin = (event) => {
+    event.preventDefault();
+
+    /*
+     * TEMPORARY LOGIN
+     *
+     * No email/password checking.
+     * No backend call.
+     *
+     * Simply tell App.jsx that
+     * the user has logged in.
+     */
+
+    onLoginSuccess();
+  };
 
   /* =========================
      GOOGLE LOGIN
@@ -24,7 +44,9 @@ export default function LoginForm({ setActiveTab }) {
 
   return (
     <div className="auth-form-container">
-      {/* TITLE */}
+      {/* =========================
+          TITLE
+      ========================= */}
 
       <div className="form-title">
         <h1>Sign in to your account</h1>
@@ -32,7 +54,7 @@ export default function LoginForm({ setActiveTab }) {
         <p>Enter your details to continue</p>
       </div>
 
-      <form onSubmit={(event) => event.preventDefault()}>
+      <form onSubmit={handleLogin}>
         {/* =========================
             EMAIL
         ========================= */}
@@ -73,7 +95,7 @@ export default function LoginForm({ setActiveTab }) {
               autoComplete="current-password"
             />
 
-            {/* SHOW / HIDE */}
+            {/* SHOW / HIDE PASSWORD */}
 
             <button
               type="button"

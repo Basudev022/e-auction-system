@@ -12,12 +12,12 @@ import {
   UserRoundPlus,
 } from "lucide-react";
 
-import LoginForm from "../../components/auth/LoginForm";
-import RegisterForm from "../../components/auth/RegisterForm";
+import LoginForm from "../../components/Auth/LoginForm";
+import RegisterForm from "../../components/Auth/RegisterForm";
 
 import "./AuthPage.css";
 
-export default function AuthPage({ onClose }) {
+export default function AuthPage({ onClose, onLoginSuccess }) {
   const [activeTab, setActiveTab] = useState("login");
 
   useEffect(() => {
@@ -152,8 +152,6 @@ export default function AuthPage({ onClose }) {
                 <div className="register-scene">
                   <div className="register-circle" />
 
-                  {/* REGISTRATION CARD */}
-
                   <div className="registration-card">
                     <div className="registration-card-header">
                       <div className="registration-card-icon">
@@ -232,14 +230,7 @@ export default function AuthPage({ onClose }) {
         ========================= */}
 
         <section className="auth-content">
-          {/* =========================
-              LOGIN / REGISTER TABS
-              
-              IMPORTANT:
-              NO SLIDER
-              NO PILL
-              NO BUTTON BOX
-          ========================= */}
+          {/* LOGIN / REGISTER TABS */}
 
           <div className="auth-tabs">
             <button
@@ -267,7 +258,10 @@ export default function AuthPage({ onClose }) {
 
           <div className="auth-form-wrapper">
             {activeTab === "login" ? (
-              <LoginForm setActiveTab={setActiveTab} />
+              <LoginForm
+                setActiveTab={setActiveTab}
+                onLoginSuccess={onLoginSuccess}
+              />
             ) : (
               <RegisterForm setActiveTab={setActiveTab} />
             )}

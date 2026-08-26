@@ -1,63 +1,42 @@
 import { useState } from "react";
 
 import AuthPage from "./pages/Auth/AuthPage";
+import Dashboard from "./pages/Dashboard/Dashboard";
 import Home from "./pages/Home/Home";
 
 export default function App() {
   const [showAuth, setShowAuth] = useState(false);
-
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // ==========================================
-  // OPEN LOGIN / REGISTER POPUP
-  // ==========================================
-
+  // Open login/register popup
   const handleOpenAuth = () => {
     setShowAuth(true);
   };
 
-  // ==========================================
-  // CLOSE LOGIN / REGISTER POPUP
-  // ==========================================
-
+  // Close login/register popup
   const handleCloseAuth = () => {
     setShowAuth(false);
   };
 
-  // ==========================================
-  // LOGIN SUCCESS
-  // ==========================================
-
-  const handleLoginSuccess = (userData) => {
-    console.log("User logged in:", userData);
-
-    /*
-     * Redux has already stored:
-     *
-     * token
-     * user
-     * isAuthenticated
-     *
-     * Here we only update the
-     * application-level UI.
-     */
-
+  // Sign In clicked successfully
+  const handleLoginSuccess = () => {
     setIsLoggedIn(true);
-
     setShowAuth(false);
   };
 
+  // Logout
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+  };
+
+  // Show dashboard after Sign In
+  if (isLoggedIn) {
+    return <Dashboard onLogout={handleLogout} />;
+  }
+
   return (
     <>
-      {/* ========================================
-          HOME PAGE
-      ======================================== */}
-
       <Home onLogin={handleOpenAuth} />
-
-      {/* ========================================
-          AUTH POPUP
-      ======================================== */}
 
       {showAuth && (
         <AuthPage
