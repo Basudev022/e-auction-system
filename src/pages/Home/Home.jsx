@@ -7,7 +7,10 @@ import TrustBar from "../../components/TrustBar/TrustBar";
 
 import "./Home.css";
 
-export default function Home({ onLogin }) {
+export default function Home({
+  onLogin,
+  onViewAllAuctions,
+}) {
   return (
     <>
       <Header onLogin={onLogin} />
@@ -17,7 +20,9 @@ export default function Home({ onLogin }) {
 
         <div className="auction-content">
           <div className="auction-left">
-            <TrendingAuctions />
+            <TrendingAuctions
+              onViewAllAuctions={onViewAllAuctions}
+            />
           </div>
         </div>
 

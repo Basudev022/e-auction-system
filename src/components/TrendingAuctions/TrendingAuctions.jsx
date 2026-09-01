@@ -7,7 +7,9 @@ import AuctionCard from "../AuctionCard/AuctionCard";
 
 import "./TrendingAuctions.css";
 
-export default function TrendingAuctions() {
+export default function TrendingAuctions({
+  onViewAllAuctions,
+}) {
   const auctions = [
     {
       image: watch,
@@ -96,33 +98,29 @@ export default function TrendingAuctions() {
 
   const homeAuctions = auctions.slice(0, 6);
 
-  /* =========================================================
-     VIEW ALL AUCTIONS
-  ========================================================= */
-
-  const handleViewAll = () => {
-    window.location.href = "/all-auctions";
-  };
-
   return (
     <section className="upcoming-section">
+
       {/* HEADING */}
 
       <div className="auction-heading">
+
         <h2>Trending Auctions</h2>
 
         <button
           type="button"
           className="auction-view-all"
-          onClick={handleViewAll}
+          onClick={onViewAllAuctions}
         >
           View All Auctions
         </button>
+
       </div>
 
       {/* SIX AUCTION CARDS */}
 
       <div className="upcoming-grid">
+
         {homeAuctions.map((auction, index) => (
           <AuctionCard
             key={`${auction.title}-${index}`}
@@ -133,7 +131,9 @@ export default function TrendingAuctions() {
             timeLeft={auction.timeLeft}
           />
         ))}
+
       </div>
+
     </section>
   );
 }

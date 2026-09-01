@@ -3,40 +3,51 @@ import { useState } from "react";
 import AuthPage from "./pages/Auth/AuthPage";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Home from "./pages/Home/Home";
+import AllAuction from "./pages/AllAuctions/AllAuction";
 
 export default function App() {
   const [showAuth, setShowAuth] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentPage, setCurrentPage] = useState("home");
 
-  // Open login/register popup
   const handleOpenAuth = () => {
     setShowAuth(true);
   };
 
-  // Close login/register popup
   const handleCloseAuth = () => {
     setShowAuth(false);
   };
 
-  // Sign In clicked successfully
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
     setShowAuth(false);
   };
 
-  // Logout
   const handleLogout = () => {
     setIsLoggedIn(false);
+    setCurrentPage("home");
   };
 
-  // Show dashboard after Sign In
+  const handleViewAllAuctions = () => {
+    setCurrentPage("all-auctions");
+  };
+
   if (isLoggedIn) {
     return <Dashboard onLogout={handleLogout} />;
   }
 
   return (
     <>
-      <Home onLogin={handleOpenAuth} />
+      {currentPage === "home" && (
+        <Home
+          onLogin={handleOpenAuth}
+          onViewAllAuctions={handleViewAllAuctions}
+        />
+      )}
+
+      {currentPage === "all-auctions" && (
+        <AllAuction />
+      )}
 
       {showAuth && (
         <AuthPage
