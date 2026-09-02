@@ -1,41 +1,215 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 
+import { loginUser } from "../../api/auth/authApi";
+
+import {
+  clearAuthError,
+  loginFailure,
+  loginStart,
+  loginSuccess,
+} from "../../redux/slices/authSlice";
+
 export default function LoginForm({ setActiveTab, onLoginSuccess }) {
+  const dispatch = useDispatch();
+
+  const { isLoading, error, registeredUser } = useSelector(
+    (state) => state.auth,
+  );
+
   const [showPassword, setShowPassword] = useState(false);
 
-  /* =========================
-     TEMPORARY SIGN IN
-  ========================= */
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleLogin = (event) => {
+  /*
+   * =========================
+   * PREFILL REGISTERED EMAIL
+   * =========================
+   *
+   * After registration, RegisterForm stores
+   * the registered user in Redux.
+   *
+   * We use the registered email here.
+   */
+  useEffect(() => {
+    if (registeredUser?.email) {
+      setEmail(registeredUser.email);
+    }
+  }, [registeredUser]);
+
+  /*
+   * =========================
+   * LOGIN
+   * =========================
+   */
+
+  const handleLogin = async (event) => {
     event.preventDefault();
 
     /*
-     * TEMPORARY LOGIN
-     *
-     * No email/password checking.
-     * No backend call.
-     *
-     * Simply tell App.jsx that
-     * the user has logged in.
+     * Check required fields
      */
+    if (!email.trim() || !password) {
+      dispatch(loginFailure("Email and password are required."));
+      return;
+    }
 
-    onLoginSuccess();
+    /*
+     * Start loading
+     */
+    dispatch(loginStart());
+
+    try {
+      /*
+       * Login request data
+       */
+      const loginData = {
+        email: email.trim(),
+        password: password,
+      };
+
+      console.log("========== LOGIN REQUEST ==========");
+      console.log("Email:", loginData.email);
+      console.log("===================================");
+
+      /*
+       * Call Spring Boot login API
+       */
+      const response = await loginUser(loginData);
+
+      /*
+       * Login successful
+       */
+      console.log("========== LOGIN SUCCESS ==========");
+      console.log("Response:", response);
+      console.log("===================================");
+
+      /*
+       * Save token + user information
+       * into Redux and localStorage.
+       */
+      dispatch(loginSuccess(response));
+
+      /*
+       * Tell App.jsx that login succeeded.
+       *
+       * App.jsx will then display Dashboard.
+       */
+      onLoginSuccess();
+    } catch (error) {
+      /*
+       * =========================
+       * DETAILED LOGIN ERROR
+       * =========================
+       */
+
+      console.error("========== LOGIN ERROR ==========");
+      console.error("Error:", error);
+      console.error("Status:", error.response?.status);
+      console.error("Response:", error.response?.data);
+      console.error("Message:", error.message);
+      console.error("=================================");
+
+      /*
+       * Default error message
+       */
+      let errorMessage = "Login failed.";
+
+      /*
+       * Get actual backend error
+       */
+      if (error.response?.data) {
+        /*
+         * Backend returned plain text
+         */
+        if (typeof error.response.data === "string") {
+          errorMessage = error.response.data;
+        } else if (error.response.data.message) {
+
+        /*
+         * Backend returned:
+         * {
+         *   "message": "..."
+         * }
+         */
+          errorMessage = error.response.data.message;
+        } else if (error.response.data.error) {
+
+        /*
+         * Backend returned:
+         * {
+         *   "error": "..."
+         * }
+         */
+          errorMessage = error.response.data.error;
+        } else {
+
+        /*
+         * Backend returned another JSON object
+         */
+          errorMessage = JSON.stringify(error.response.data);
+        }
+      } else if (error.message) {
+
+      /*
+       * Network / Axios error
+       */
+        errorMessage = error.message;
+      }
+
+      /*
+       * Save error in Redux
+       */
+      dispatch(loginFailure(errorMessage));
+    }
   };
 
-  /* =========================
-     GOOGLE LOGIN
-  ========================= */
+  /*
+   * =========================
+   * EMAIL CHANGE
+   * =========================
+   */
+
+  const handleEmailChange = (event) => {
+    setEmail(event.target.value);
+
+    if (error) {
+      dispatch(clearAuthError());
+    }
+  };
+
+  /*
+   * =========================
+   * PASSWORD CHANGE
+   * =========================
+   */
+
+  const handlePasswordChange = (event) => {
+    setPassword(event.target.value);
+
+    if (error) {
+      dispatch(clearAuthError());
+    }
+  };
+
+  /*
+   * =========================
+   * GOOGLE LOGIN
+   * =========================
+   */
 
   const handleGoogleLogin = () => {
     window.location.href = "http://localhost:8080/oauth2/authorization/google";
   };
 
-  /* =========================
-     FACEBOOK LOGIN
-  ========================= */
+  /*
+   * =========================
+   * FACEBOOK LOGIN
+   * =========================
+   */
 
   const handleFacebookLogin = () => {
     window.location.href =
@@ -72,6 +246,9 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
               type="email"
               placeholder="Enter your email"
               autoComplete="email"
+              value={email}
+              onChange={handleEmailChange}
+              disabled={isLoading}
             />
           </div>
         </div>
@@ -93,6 +270,9 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
               type={showPassword ? "text" : "password"}
               placeholder="Enter your password"
               autoComplete="current-password"
+              value={password}
+              onChange={handlePasswordChange}
+              disabled={isLoading}
             />
 
             {/* SHOW / HIDE PASSWORD */}
@@ -101,6 +281,7 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
               type="button"
               className="password-toggle"
               onClick={() => setShowPassword(!showPassword)}
+              disabled={isLoading}
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
@@ -108,12 +289,18 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
         </div>
 
         {/* =========================
+            ERROR MESSAGE
+        ========================= */}
+
+        {error && <div className="auth-error-message">{error}</div>}
+
+        {/* =========================
             REMEMBER / FORGOT
         ========================= */}
 
         <div className="login-options">
           <label className="remember">
-            <input type="checkbox" />
+            <input type="checkbox" disabled={isLoading} />
 
             <span>Remember me</span>
           </label>
@@ -127,8 +314,8 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
             LOGIN BUTTON
         ========================= */}
 
-        <button type="submit" className="primary-button">
-          Sign in
+        <button type="submit" className="primary-button" disabled={isLoading}>
+          {isLoading ? "Signing in..." : "Sign in"}
         </button>
 
         {/* =========================
@@ -154,6 +341,7 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
             type="button"
             className="social-button"
             onClick={handleGoogleLogin}
+            disabled={isLoading}
           >
             <span className="google-logo">G</span>
 
@@ -166,6 +354,7 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
             type="button"
             className="social-button"
             onClick={handleFacebookLogin}
+            disabled={isLoading}
           >
             <span className="facebook-logo">f</span>
 
@@ -180,7 +369,11 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
         <div className="switch-account">
           <span>Don't have an account?</span>
 
-          <button type="button" onClick={() => setActiveTab("register")}>
+          <button
+            type="button"
+            onClick={() => setActiveTab("register")}
+            disabled={isLoading}
+          >
             Create account
           </button>
         </div>

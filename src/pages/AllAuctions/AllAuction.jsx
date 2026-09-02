@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import watch from "../../assets/images/watch.png";
 import AuctionCard from "../../components/AuctionCard/AuctionCard";
 import "./AllAuction.css";
 
@@ -16,29 +17,209 @@ const categories = [
 
 /* 20 items = exactly 4 pages when itemsPerPage = 5 */
 const auctions = [
-  { id: 1, image: "", title: "Rolex Submariner Date", seller: "Luxury Watches", category: "Jewelry & Watches", timeLeft: "02h 15m 30s", price: 850000, type: "Live Auctions" },
-  { id: 2, image: "", title: "2022 Tesla Model 3", seller: "Premium Motors", category: "Vehicles", timeLeft: "01h 45m 22s", price: 2445000, type: "Live Auctions" },
-  { id: 3, image: "", title: "Vintage Landscape Painting", seller: "Art Gallery", category: "Art & Collectibles", timeLeft: "00h 30m 10s", price: 25500, type: "Ending Soon" },
-  { id: 4, image: "", title: "Canon EOS R5 Camera", seller: "Camera World", category: "Electronics", timeLeft: "02h 35m 45s", price: 125000, type: "Live Auctions" },
-  { id: 5, image: "", title: "Diamond Necklace", seller: "Royal Jewellers", category: "Jewelry & Watches", timeLeft: "01h 05m 50s", price: 325000, type: "Ending Soon" },
+  {
+    id: 1,
+    image: watch,
+    title: "Rolex Submariner Date",
+    seller: "Luxury Watches",
+    category: "Jewelry & Watches",
+    timeLeft: "02h 15m 30s",
+    price: 850000,
+    type: "Live Auctions",
+  },
+  {
+    id: 2,
+    image: watch,
+    title: "2022 Tesla Model 3",
+    seller: "Premium Motors",
+    category: "Vehicles",
+    timeLeft: "01h 45m 22s",
+    price: 2445000,
+    type: "Live Auctions",
+  },
+  {
+    id: 3,
+    image: watch,
+    title: "Vintage Landscape Painting",
+    seller: "Art Gallery",
+    category: "Art & Collectibles",
+    timeLeft: "00h 30m 10s",
+    price: 25500,
+    type: "Ending Soon",
+  },
+  {
+    id: 4,
+    image: watch,
+    title: "Canon EOS R5 Camera",
+    seller: "Camera World",
+    category: "Electronics",
+    timeLeft: "02h 35m 45s",
+    price: 125000,
+    type: "Live Auctions",
+  },
+  {
+    id: 5,
+    image: watch,
+    title: "Diamond Necklace",
+    seller: "Royal Jewellers",
+    category: "Jewelry & Watches",
+    timeLeft: "01h 05m 50s",
+    price: 325000,
+    type: "Ending Soon",
+  },
 
-  { id: 6, image: "", title: "MacBook Pro M3", seller: "Tech Store", category: "Electronics", timeLeft: "03h 20m 15s", price: 175000, type: "Live Auctions" },
-  { id: 7, image: "", title: "BMW X5 2023", seller: "Auto World", category: "Vehicles", timeLeft: "04h 12m 32s", price: 6850000, type: "Upcoming Auctions" },
-  { id: 8, image: "", title: "Modern Abstract Art", seller: "Modern Art House", category: "Art & Collectibles", timeLeft: "00h 42m 18s", price: 78000, type: "Ending Soon" },
-  { id: 9, image: "", title: "Luxury Leather Sofa", seller: "Home Interiors", category: "Furniture", timeLeft: "05h 10m 05s", price: 95000, type: "Live Auctions" },
-  { id: 10, image: "", title: "Premium Sports Watch", seller: "Watch House", category: "Jewelry & Watches", timeLeft: "01h 50m 40s", price: 185000, type: "Live Auctions" },
+  {
+    id: 6,
+    image: watch,
+    title: "MacBook Pro M3",
+    seller: "Tech Store",
+    category: "Electronics",
+    timeLeft: "03h 20m 15s",
+    price: 175000,
+    type: "Live Auctions",
+  },
+  {
+    id: 7,
+    image: watch,
+    title: "BMW X5 2023",
+    seller: "Auto World",
+    category: "Vehicles",
+    timeLeft: "04h 12m 32s",
+    price: 6850000,
+    type: "Upcoming Auctions",
+  },
+  {
+    id: 8,
+    image: watch,
+    title: "Modern Abstract Art",
+    seller: "Modern Art House",
+    category: "Art & Collectibles",
+    timeLeft: "00h 42m 18s",
+    price: 78000,
+    type: "Ending Soon",
+  },
+  {
+    id: 9,
+    image: watch,
+    title: "Luxury Leather Sofa",
+    seller: "Home Interiors",
+    category: "Furniture",
+    timeLeft: "05h 10m 05s",
+    price: 95000,
+    type: "Live Auctions",
+  },
+  {
+    id: 10,
+    image: watch,
+    title: "Premium Sports Watch",
+    seller: "Watch House",
+    category: "Jewelry & Watches",
+    timeLeft: "01h 50m 40s",
+    price: 185000,
+    type: "Live Auctions",
+  },
 
-  { id: 11, image: "", title: "Sony Alpha A7 IV", seller: "Digital Hub", category: "Electronics", timeLeft: "06h 15m 20s", price: 145000, type: "Upcoming Auctions" },
-  { id: 12, image: "", title: "Honda Civic 2021", seller: "City Motors", category: "Vehicles", timeLeft: "07h 25m 12s", price: 1120000, type: "Upcoming Auctions" },
-  { id: 13, image: "", title: "Antique Wooden Chair", seller: "Classic Furniture", category: "Furniture", timeLeft: "02h 48m 35s", price: 42000, type: "Live Auctions" },
-  { id: 14, image: "", title: "Gold Chain 22K", seller: "Golden Palace", category: "Jewelry & Watches", timeLeft: "03h 05m 44s", price: 210000, type: "Live Auctions" },
-  { id: 15, image: "", title: "Rare First Edition Book", seller: "Book Collectors", category: "Books & Media", timeLeft: "00h 55m 28s", price: 18500, type: "Ending Soon" },
+  {
+    id: 11,
+    image: watch,
+    title: "Sony Alpha A7 IV",
+    seller: "Digital Hub",
+    category: "Electronics",
+    timeLeft: "06h 15m 20s",
+    price: 145000,
+    type: "Upcoming Auctions",
+  },
+  {
+    id: 12,
+    image: watch,
+    title: "Honda Civic 2021",
+    seller: "City Motors",
+    category: "Vehicles",
+    timeLeft: "07h 25m 12s",
+    price: 1120000,
+    type: "Upcoming Auctions",
+  },
+  {
+    id: 13,
+    image: watch,
+    title: "Antique Wooden Chair",
+    seller: "Classic Furniture",
+    category: "Furniture",
+    timeLeft: "02h 48m 35s",
+    price: 42000,
+    type: "Live Auctions",
+  },
+  {
+    id: 14,
+    image: watch,
+    title: "Gold Chain 22K",
+    seller: "Golden Palace",
+    category: "Jewelry & Watches",
+    timeLeft: "03h 05m 44s",
+    price: 210000,
+    type: "Live Auctions",
+  },
+  {
+    id: 15,
+    image: watch,
+    title: "Rare First Edition Book",
+    seller: "Book Collectors",
+    category: "Books & Media",
+    timeLeft: "00h 55m 28s",
+    price: 18500,
+    type: "Ending Soon",
+  },
 
-  { id: 16, image: "", title: "Designer Leather Jacket", seller: "Fashion House", category: "Fashion", timeLeft: "08h 10m 18s", price: 35000, type: "Upcoming Auctions" },
-  { id: 17, image: "", title: "Professional Football Kit", seller: "Sports World", category: "Sports", timeLeft: "05h 40m 05s", price: 22000, type: "Live Auctions" },
-  { id: 18, image: "", title: "Modern Apartment", seller: "Prime Properties", category: "Real Estate", timeLeft: "12h 20m 30s", price: 8500000, type: "Upcoming Auctions" },
-  { id: 19, image: "", title: "iPhone 17 Pro Max", seller: "Mobile Store", category: "Electronics", timeLeft: "01h 25m 10s", price: 145000, type: "Ending Soon" },
-  { id: 20, image: "", title: "Royal Dining Table", seller: "Home Gallery", category: "Furniture", timeLeft: "09h 35m 22s", price: 115000, type: "Upcoming Auctions" },
+  {
+    id: 16,
+    image: watch,
+    title: "Designer Leather Jacket",
+    seller: "Fashion House",
+    category: "Fashion",
+    timeLeft: "08h 10m 18s",
+    price: 35000,
+    type: "Upcoming Auctions",
+  },
+  {
+    id: 17,
+    image: watch,
+    title: "Professional Football Kit",
+    seller: "Sports World",
+    category: "Sports",
+    timeLeft: "05h 40m 05s",
+    price: 22000,
+    type: "Live Auctions",
+  },
+  {
+    id: 18,
+    image: watch,
+    title: "Modern Apartment",
+    seller: "Prime Properties",
+    category: "Real Estate",
+    timeLeft: "12h 20m 30s",
+    price: 8500000,
+    type: "Upcoming Auctions",
+  },
+  {
+    id: 19,
+    image: watch,
+    title: "iPhone 17 Pro Max",
+    seller: "Mobile Store",
+    category: "Electronics",
+    timeLeft: "01h 25m 10s",
+    price: 145000,
+    type: "Ending Soon",
+  },
+  {
+    id: 20,
+    image: watch,
+    title: "Royal Dining Table",
+    seller: "Home Gallery",
+    category: "Furniture",
+    timeLeft: "09h 35m 22s",
+    price: 115000,
+    type: "Upcoming Auctions",
+  },
 ];
 
 export default function AllAuction() {
@@ -51,15 +232,16 @@ export default function AllAuction() {
   const [viewMode, setViewMode] = useState("list");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // 20 items / 5 items per page = exactly 4 pages.
-  const itemsPerPage = 5;
+  // List view = 5 cards per page
+  // Grid view = 6 cards per page (2 columns × 3 rows)
+  const itemsPerPage = viewMode === "grid" ? 6 : 5;
 
   const handleCategoryChange = (category) => {
     setCurrentPage(1);
     setSelectedCategories((prev) =>
       prev.includes(category)
         ? prev.filter((item) => item !== category)
-        : [...prev, category]
+        : [...prev, category],
     );
   };
 
@@ -83,26 +265,22 @@ export default function AllAuction() {
         (auction) =>
           auction.title.toLowerCase().includes(value) ||
           auction.seller.toLowerCase().includes(value) ||
-          auction.category.toLowerCase().includes(value)
+          auction.category.toLowerCase().includes(value),
       );
     }
 
     if (selectedCategories.length > 0) {
       result = result.filter((auction) =>
-        selectedCategories.includes(auction.category)
+        selectedCategories.includes(auction.category),
       );
     }
 
     result = result.filter(
-      (auction) =>
-        auction.price >= minPrice &&
-        auction.price <= maxPrice
+      (auction) => auction.price >= minPrice && auction.price <= maxPrice,
     );
 
     if (auctionType !== "All Types") {
-      result = result.filter(
-        (auction) => auction.type === auctionType
-      );
+      result = result.filter((auction) => auction.type === auctionType);
     }
 
     const convertTime = (time) => {
@@ -110,17 +288,11 @@ export default function AllAuction() {
       if (!match) return Infinity;
 
       const [, hours, minutes, seconds] = match;
-      return (
-        Number(hours) * 3600 +
-        Number(minutes) * 60 +
-        Number(seconds)
-      );
+      return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
     };
 
     if (sortBy === "Ending Soon") {
-      result.sort(
-        (a, b) => convertTime(a.timeLeft) - convertTime(b.timeLeft)
-      );
+      result.sort((a, b) => convertTime(a.timeLeft) - convertTime(b.timeLeft));
     }
 
     if (sortBy === "Price: Low to High") {
@@ -132,18 +304,11 @@ export default function AllAuction() {
     }
 
     return result;
-  }, [
-    search,
-    selectedCategories,
-    minPrice,
-    maxPrice,
-    auctionType,
-    sortBy,
-  ]);
+  }, [search, selectedCategories, minPrice, maxPrice, auctionType, sortBy]);
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredAuctions.length / itemsPerPage)
+    Math.ceil(filteredAuctions.length / itemsPerPage),
   );
 
   const safeCurrentPage = Math.min(currentPage, totalPages);
@@ -151,7 +316,7 @@ export default function AllAuction() {
 
   const currentAuctions = filteredAuctions.slice(
     startIndex,
-    startIndex + itemsPerPage
+    startIndex + itemsPerPage,
   );
 
   const goToPage = (page) => {
@@ -162,7 +327,6 @@ export default function AllAuction() {
   return (
     <div className="all-auctions-page">
       <div className="all-auctions-container">
-
         <div className="auction-header">
           <h1>All Auctions</h1>
           <p>Discover and bid on amazing items.</p>
@@ -217,7 +381,6 @@ export default function AllAuction() {
         </div>
 
         <div className="auction-main">
-
           <aside className="auction-sidebar">
             <div className="filter-section">
               <h3>CATEGORIES</h3>
@@ -356,13 +519,8 @@ export default function AllAuction() {
 
             <div className="auction-pagination">
               <span className="pagination-info">
-                Showing{" "}
-                {filteredAuctions.length === 0 ? 0 : startIndex + 1}{" "}
-                to{" "}
-                {Math.min(
-                  startIndex + itemsPerPage,
-                  filteredAuctions.length
-                )}{" "}
+                Showing {filteredAuctions.length === 0 ? 0 : startIndex + 1} to{" "}
+                {Math.min(startIndex + itemsPerPage, filteredAuctions.length)}{" "}
                 of {filteredAuctions.length} auctions
               </span>
 
@@ -379,7 +537,7 @@ export default function AllAuction() {
                 {/* Always displays pages 1, 2, 3, 4 when all 20 items are visible. */}
                 {Array.from(
                   { length: totalPages },
-                  (_, index) => index + 1
+                  (_, index) => index + 1,
                 ).map((page) => (
                   <button
                     type="button"

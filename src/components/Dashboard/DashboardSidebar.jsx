@@ -1,69 +1,93 @@
+import { useEffect, useState } from "react";
+
+import Icon from "../Icon/Icon";
+
 function DashboardSidebar() {
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const formattedTime = currentTime.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
+  const formattedDate = currentTime.toLocaleDateString([], {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+
   return (
     <aside className="dashboard-sidebar">
-      <div className="brand">
-        <div className="brand-icon">⚒</div>
+      {/* REAL-TIME CLOCK */}
+      <div className="real-time-watch">
+        <div className="watch-details">
+          <span className="watch-label">Current Time</span>
 
-        <div>
-          <h2>eAuction</h2>
-          <span>Bid More, Win More</span>
+          <strong className="watch-time">{formattedTime}</strong>
+
+          <span className="watch-date">{formattedDate}</span>
         </div>
       </div>
 
+      {/* SIDEBAR NAVIGATION */}
       <nav className="sidebar-nav">
         <button className="nav-item active">
-          <span>⌂</span>
-          Overview
+          <Icon name="home" size={18} />
+          <span>Overview</span>
         </button>
 
         <button className="nav-item">
-          <span>◉</span>
-          My Bids
+          <Icon name="gavel" size={18} />
+          <span>My Bids</span>
         </button>
 
         <button className="nav-item">
-          <span>♡</span>
-          Watchlist
+          <Icon name="heart" size={18} />
+          <span>Watchlist</span>
         </button>
 
         <button className="nav-item">
-          <span>🏆</span>
-          Won Auctions
+          <Icon name="trophy" size={18} />
+          <span>Won Auctions</span>
         </button>
 
         <button className="nav-item">
-          <span>✉</span>
-          Messages
+          <Icon name="mail" size={18} />
+          <span>Messages</span>
           <span className="message-count">2</span>
         </button>
 
         <button className="nav-item">
-          <span>⚙</span>
-          Account Settings
+          <Icon name="home" size={18} />
+          <span>My Address</span>
         </button>
 
         <button className="nav-item">
-          <span>▣</span>
-          Payment Methods
-        </button>
-
-        <button className="nav-item">
-          <span>⌖</span>
-          My Address
-        </button>
-
-        <button className="nav-item logout">
-          <span>↪</span>
-          Log Out
+          <Icon name="creditCard" size={18} />
+          <span>Payment Methods</span>
         </button>
       </nav>
 
+      {/* HELP */}
       <div className="help-card">
         <h4>Need Help?</h4>
 
         <p>We're here to help you with anything you need.</p>
 
-        <button>☎ &nbsp; Contact Support</button>
+        <button>
+          <Icon name="phone" size={16} />
+          <span>Contact Support</span>
+        </button>
       </div>
     </aside>
   );

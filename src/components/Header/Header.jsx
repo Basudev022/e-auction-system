@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 
+import { getCurrentUser } from "../../api/user/userApi";
 import Icon from "../Icon/Icon";
+import SellerVerificationModal from "../Seller/SellerVerificationModal";
 
 import "./Header.css";
 
-export default function Header({ onLogin }) {
+export default function Header({ onLogin, onLogout, dashboardMode = false }) {
   const [activeLink, setActiveLink] = useState("Home");
 
   const [location, setLocation] = useState({
@@ -14,8 +16,12 @@ export default function Header({ onLogin }) {
   });
 
   const [showCategories, setShowCategories] = useState(false);
-
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+  const [showSellerModal, setShowSellerModal] = useState(false);
+
+  const [userName, setUserName] = useState("User");
 
   // ==========================================
   // CATEGORIES
@@ -32,6 +38,25 @@ export default function Header({ onLogin }) {
     "Industrial Equipment",
     "Agriculture",
   ];
+
+  // ==========================================
+  // GET LOGGED-IN USER
+  // DASHBOARD ONLY
+  // ==========================================
+
+  useEffect(() => {
+    if (!dashboardMode) return;
+
+    getCurrentUser()
+      .then((user) => {
+        if (user?.name) {
+          setUserName(user.name);
+        }
+      })
+      .catch(() => {
+        setUserName("User");
+      });
+  }, [dashboardMode]);
 
   // ==========================================
   // GET USER LOCATION
@@ -52,9 +77,7 @@ export default function Header({ onLogin }) {
 
           setLocation({
             code: data.country_code,
-
             name: data.country_name,
-
             flag: `https://flagcdn.com/w40/${countryCode}.png`,
           });
         }
@@ -62,9 +85,7 @@ export default function Header({ onLogin }) {
       .catch(() => {
         setLocation({
           code: "--",
-
           name: "Unknown",
-
           flag: "",
         });
       });
@@ -90,6 +111,40 @@ export default function Header({ onLogin }) {
 
   const handleNavClick = (link) => {
     setActiveLink(link);
+  };
+
+  // ==========================================
+  // PROFILE MENU
+  // ==========================================
+
+  const handleProfileClick = () => {
+    setShowProfileMenu((previous) => !previous);
+  };
+
+  const handleLogout = () => {
+    setShowProfileMenu(false);
+
+    if (onLogout) {
+      onLogout();
+    }
+  };
+
+  // ==========================================
+  // GET FIRST LETTER OF USER NAME
+  // ==========================================
+
+  const userInitial = userName ? userName.charAt(0).toUpperCase() : "U";
+
+  // ==========================================
+  // BECOME A SELLER
+  // ==========================================
+
+  const handleBecomeSeller = () => {
+    setShowSellerModal(true);
+  };
+
+  const handleCloseSellerModal = () => {
+    setShowSellerModal(false);
   };
 
   return (
@@ -161,6 +216,7 @@ export default function Header({ onLogin }) {
             aria-label="Search auctions"
           />
 
+          {/* Search icon remains inside the search bar */}
           <button aria-label="Search" type="button">
             <Icon name="search" size={19} />
           </button>
@@ -190,54 +246,130 @@ export default function Header({ onLogin }) {
       </div>
 
       {/* ========================================
-          NAVIGATION
+          BECOME A SELLER
+          DASHBOARD ONLY
       ======================================== */}
 
-      <nav className="nav-links">
-        <a
-          href="/"
-          className={`nav-link ${activeLink === "Home" ? "active" : ""}`}
-          onClick={() => handleNavClick("Home")}
+      {dashboardMode && (
+        <button
+          type="button"
+          className="seller-link"
+          onClick={handleBecomeSeller}
         >
-          Home
-        </a>
-
-        <a
-          href="/auctions"
-          className={`nav-link ${activeLink === "Auctions" ? "active" : ""}`}
-          onClick={() => handleNavClick("Auctions")}
-        >
-          Auctions
-        </a>
-
-        <a
-          href="/how-it-works"
-          className={`nav-link ${
-            activeLink === "How It Works" ? "active" : ""
-          }`}
-          onClick={() => handleNavClick("How It Works")}
-        >
-          How It Works
-        </a>
-
-        <a
-          href="/support"
-          className={`nav-link ${
-            activeLink === "FAQ & Support" ? "active" : ""
-          }`}
-          onClick={() => handleNavClick("FAQ & Support")}
-        >
-          FAQ &amp; Support
-        </a>
-      </nav>
+          Become A Seller
+        </button>
+      )}
 
       {/* ========================================
-          LOGIN
+          NAVIGATION
+          HOMEPAGE ONLY
       ======================================== */}
 
-      <button className="login-btn" type="button" onClick={onLogin}>
-        SignUp/Login
-      </button>
+      {!dashboardMode && (
+        <nav className="nav-links">
+          <a
+            href="/"
+            className={`nav-link ${activeLink === "Home" ? "active" : ""}`}
+            onClick={() => handleNavClick("Home")}
+          >
+            Home
+          </a>
+
+          <a
+            href="/auctions"
+            className={`nav-link ${activeLink === "Auctions" ? "active" : ""}`}
+            onClick={() => handleNavClick("Auctions")}
+          >
+            Auctions
+          </a>
+
+          <a
+            href="/how-it-works"
+            className={`nav-link ${
+              activeLink === "How It Works" ? "active" : ""
+            }`}
+            onClick={() => handleNavClick("How It Works")}
+          >
+            How It Works
+          </a>
+
+          <a
+            href="/support"
+            className={`nav-link ${
+              activeLink === "FAQ & Support" ? "active" : ""
+            }`}
+            onClick={() => handleNavClick("FAQ & Support")}
+          >
+            FAQ &amp; Support
+          </a>
+        </nav>
+      )}
+
+      {/* ========================================
+          SIGNUP / LOGIN
+          HOMEPAGE ONLY
+      ======================================== */}
+
+      {!dashboardMode && (
+        <button className="login-btn" type="button" onClick={onLogin}>
+          SignUp/Login
+        </button>
+      )}
+
+      {/* ========================================
+          DASHBOARD PROFILE
+          DASHBOARD ONLY
+      ======================================== */}
+
+      {dashboardMode && (
+        <div className="profile-wrapper">
+          <button
+            className="profile-btn"
+            type="button"
+            onClick={handleProfileClick}
+            aria-label="Profile menu"
+          >
+            {/* Actual user's first letter */}
+            <span className="profile-avatar">{userInitial}</span>
+
+            {/* Actual user's name */}
+            <span className="profile-name">{userName}</span>
+
+            {/* Arrow */}
+            <span className="profile-arrow">{showProfileMenu ? "▲" : "▼"}</span>
+          </button>
+
+          {/* Profile dropdown */}
+          {showProfileMenu && (
+            <div className="profile-menu">
+              <button
+                type="button"
+                className="profile-menu-item"
+                onClick={() => setShowProfileMenu(false)}
+              >
+                Account Settings
+              </button>
+
+              <button
+                type="button"
+                className="profile-menu-item logout-item"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================
+          SELLER VERIFICATION MODAL
+          DASHBOARD ONLY
+      ======================================== */}
+
+      {dashboardMode && showSellerModal && (
+        <SellerVerificationModal onClose={handleCloseSellerModal} />
+      )}
     </header>
   );
 }

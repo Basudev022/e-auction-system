@@ -41,7 +41,7 @@ function ActiveBids() {
   return (
     <div className="dashboard-card active-bids-card" id="active-bids">
       <div className="card-header">
-        <h2>Registered Bids</h2>
+        <h2>Registered Auctions</h2>
         <a href="#active-bids">View All →</a>
       </div>
 
