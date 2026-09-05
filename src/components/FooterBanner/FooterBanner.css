@@ -4,12 +4,12 @@
 
 .footer-banner {
   width: 100%;
-
   margin-top: 50px;
 
   background: #075d38;
-
   color: #ffffff;
+
+  box-sizing: border-box;
 }
 
 /* =========================================================
@@ -17,7 +17,12 @@
 ========================================================= */
 
 .footer-content {
+  width: calc(100% - 60px);
+  max-width: 1455px;
+
   min-height: 260px;
+
+  margin: 0 auto;
 
   display: grid;
 
@@ -205,6 +210,8 @@
   width: 100%;
 
   border-top: 1px solid rgba(255, 255, 255, 0.18);
+
+  box-sizing: border-box;
 }
 
 /* =========================================================
@@ -212,7 +219,12 @@
 ========================================================= */
 
 .footer-bottom-content {
+  width: calc(100% - 60px);
+  max-width: 1455px;
+
   min-height: 55px;
+
+  margin: 0 auto;
 
   display: flex;
   align-items: center;
@@ -248,12 +260,19 @@
 ========================================================= */
 
 @media (max-width: 1100px) {
+  .footer-content,
+  .footer-bottom-content {
+    width: calc(100% - 60px);
+  }
+
   .footer-content {
     grid-template-columns:
       1.4fr
       1fr
       1fr
       1fr;
+
+    column-gap: 35px;
 
     row-gap: 35px;
   }
@@ -272,6 +291,11 @@
 ========================================================= */
 
 @media (max-width: 900px) {
+  .footer-content,
+  .footer-bottom-content {
+    width: calc(100% - 40px);
+  }
+
   .footer-content {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 
@@ -296,6 +320,11 @@
 ========================================================= */
 
 @media (max-width: 600px) {
+  .footer-content,
+  .footer-bottom-content {
+    width: calc(100% - 30px);
+  }
+
   .footer-content {
     grid-template-columns: 1fr;
 
@@ -332,6 +361,11 @@
 ========================================================= */
 
 @media (max-width: 420px) {
+  .footer-content,
+  .footer-bottom-content {
+    width: calc(100% - 20px);
+  }
+
   .footer-content {
     row-gap: 24px;
   }

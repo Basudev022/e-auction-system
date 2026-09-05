@@ -3,17 +3,41 @@
 ========================================================= */
 
 .header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+
+  width: 100%;
   min-height: 100px;
   height: 100px;
   display: grid;
 
-  grid-template-columns: 205px minmax(420px, 1fr) auto auto auto auto;
+  grid-template-columns: 205px minmax(420px, 1fr) auto auto auto;
 
   align-items: center;
   column-gap: 24px;
   padding-top: 15px;
   padding-bottom: 15px;
   box-sizing: border-box;
+}
+
+/* =========================================================
+   DASHBOARD HEADER ALIGNMENT
+   Keep the dashboard header to the right of the fixed sidebar.
+========================================================= */
+
+.header.dashboard-header-fixed {
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: #f7faf8;
+  z-index: 1000;
+}
+
+.header.dashboard-header-fixed .brand {
+  visibility: visible;
 }
 
 /* =========================================================
@@ -29,6 +53,7 @@
   margin: 0;
   padding: 0;
   flex-shrink: 0;
+  margin-top: 20px;
 }
 
 .brand-mark {
@@ -541,4 +566,33 @@
 .logout-item:hover {
   background: #fff1f1;
   color: #b33a3a;
+}
+
+/* =========================================================
+   DASHBOARD HEADER - RESPONSIVE ALIGNMENT
+========================================================= */
+
+@media (max-width: 1250px) {
+  .header.dashboard-header-fixed {
+    left: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .header.dashboard-header-fixed {
+    left: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .header.dashboard-header-fixed {
+    left: 0;
+    width: 100%;
+  }
+
+  .header.dashboard-header-fixed .brand {
+    visibility: visible;
+  }
 }

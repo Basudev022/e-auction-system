@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import "./SellerVerificationModal.css";
 
-export default function SellerVerificationModal({ onClose }) {
+export default function SellerVerificationModal({ onClose, onSellerVerified }) {
   const [termsRead, setTermsRead] = useState(false);
   const [privacyRead, setPrivacyRead] = useState(false);
   const [accepted, setAccepted] = useState(false);
@@ -17,6 +17,18 @@ export default function SellerVerificationModal({ onClose }) {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
 
+  /*
+   * ==========================================
+   * SELLER VERIFICATION COMPLETED
+   * ==========================================
+   */
+
+  const [verificationComplete, setVerificationComplete] = useState(false);
+
+  // ==========================================
+  // TERMS SCROLL
+  // ==========================================
+
   const handleTermsScroll = (event) => {
     const element = event.target;
 
@@ -27,6 +39,10 @@ export default function SellerVerificationModal({ onClose }) {
       setTermsRead(true);
     }
   };
+
+  // ==========================================
+  // PRIVACY SCROLL
+  // ==========================================
 
   const handlePrivacyScroll = (event) => {
     const element = event.target;
@@ -39,15 +55,26 @@ export default function SellerVerificationModal({ onClose }) {
     }
   };
 
+  // ==========================================
+  // DOCUMENT TYPE CHANGE
+  // ==========================================
+
   const handleDocumentTypeChange = (event) => {
     setDocumentType(event.target.value);
+
     setDocumentNumber("");
+
     setOtpSent(false);
     setOtp("");
     setDocumentVerified(false);
+
     setMessage("");
     setMessageType("");
   };
+
+  // ==========================================
+  // DOCUMENT NUMBER CHANGE
+  // ==========================================
 
   const handleDocumentNumberChange = (event) => {
     let value = event.target.value;
@@ -75,6 +102,10 @@ export default function SellerVerificationModal({ onClose }) {
     setMessageType("");
   };
 
+  // ==========================================
+  // VALIDATE DOCUMENT
+  // ==========================================
+
   const validateDocument = () => {
     if (documentType === "PAN_CARD") {
       const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
@@ -91,30 +122,42 @@ export default function SellerVerificationModal({ onClose }) {
     return false;
   };
 
+  // ==========================================
+  // VERIFY DOCUMENT NUMBER
+  // ==========================================
+
   const handleVerifyNumber = () => {
     if (!termsRead || !privacyRead) {
       setMessage(
         "Please read the Terms & Conditions and Privacy Policy completely.",
       );
+
       setMessageType("error");
+
       return;
     }
 
     if (!accepted) {
       setMessage("Please accept the Terms & Conditions and Privacy Policy.");
+
       setMessageType("error");
+
       return;
     }
 
     if (!documentType) {
       setMessage("Please select a document.");
+
       setMessageType("error");
+
       return;
     }
 
     if (!documentNumber.trim()) {
       setMessage("Please enter your document number.");
+
       setMessageType("error");
+
       return;
     }
 
@@ -126,6 +169,7 @@ export default function SellerVerificationModal({ onClose }) {
       }
 
       setMessageType("error");
+
       return;
     }
 
@@ -134,10 +178,15 @@ export default function SellerVerificationModal({ onClose }) {
     setDocumentVerified(false);
 
     setMessage("OTP has been sent to your registered mobile number.");
+
     setMessageType("success");
 
-    // Backend OTP API will be connected here.
+    // Backend OTP API will be connected here later.
   };
+
+  // ==========================================
+  // OTP CHANGE
+  // ==========================================
 
   const handleOtpChange = (event) => {
     const value = event.target.value.replace(/\D/g, "").slice(0, 6);
@@ -145,47 +194,114 @@ export default function SellerVerificationModal({ onClose }) {
     setOtp(value);
   };
 
+  // ==========================================
+  // VERIFY OTP
+  // ==========================================
+
   const handleVerifyOtp = () => {
     if (otp.length !== 6) {
       setMessage("Please enter the 6-digit OTP.");
+
       setMessageType("error");
+
       return;
     }
 
     setDocumentVerified(true);
+
     setOtpSent(false);
+
     setOtp("");
 
     setMessage("Document number verified successfully.");
+
     setMessageType("success");
 
-    // Backend OTP verification API will be connected here.
+    // Backend OTP verification API will be connected here later.
   };
+
+  // ==========================================
+  // VERIFY REQUEST
+  // ==========================================
 
   const handleVerifyRequest = () => {
     if (!termsRead || !privacyRead) {
       setMessage("Please read all Terms & Conditions and Privacy Policy.");
+
       setMessageType("error");
+
       return;
     }
 
     if (!accepted) {
       setMessage("Please accept the Terms & Conditions and Privacy Policy.");
+
       setMessageType("error");
+
       return;
     }
 
     if (!documentVerified) {
       setMessage("Please verify your PAN Card or Aadhaar number first.");
+
       setMessageType("error");
+
       return;
     }
 
-    setMessage("Seller verification request submitted successfully.");
-    setMessageType("success");
+    /*
+     * ========================================
+     * FRONTEND-ONLY SELLER VERIFICATION
+     * ========================================
+     *
+     * Seller status is managed by App.jsx.
+     *
+     * IMPORTANT:
+     * Do NOT store isSeller in localStorage.
+     *
+     * App.jsx will change:
+     *
+     * isSeller = false
+     *        ↓
+     * isSeller = true
+     *
+     * after this verification succeeds.
+     *
+     * Backend will be connected later.
+     */
 
-    // Backend seller verification request API will be connected here.
+    /*
+     * Show seller success notification.
+     */
+
+    setVerificationComplete(true);
+
+    setMessage("Seller verification successful!");
+
+    setMessageType("success");
   };
+
+  // ==========================================
+  // LOGIN AS SELLER
+  // ==========================================
+
+  const handleLoginAsSeller = () => {
+    /*
+     * Notify App.jsx that seller verification
+     * has been completed.
+     *
+     * App.jsx is responsible for changing
+     * isSeller from false to true.
+     */
+
+    if (onSellerVerified) {
+      onSellerVerified();
+    }
+  };
+
+  // ==========================================
+  // BUTTON CONDITIONS
+  // ==========================================
 
   const canAcceptTerms = termsRead && privacyRead;
 
@@ -208,35 +324,79 @@ export default function SellerVerificationModal({ onClose }) {
       ? documentNumber.replace(/\s/g, "").length
       : 0;
 
+  // ==========================================
+  // RENDER
+  // ==========================================
+
   return (
     <div className="seller-modal-overlay">
       <div className="seller-modal">
-        <button
-          type="button"
-          className="seller-modal-close"
-          onClick={onClose}
-          aria-label="Close"
-        >
-          ×
-        </button>
+        {/* ====================================
+            SUCCESS NOTIFICATION
+        ==================================== */}
 
-        <div className="seller-modal-header">
-          <h2>Become A Seller</h2>
+        {verificationComplete ? (
+          <div className="seller-verification-success">
+            <div className="seller-success-icon">✓</div>
 
-          <p>
-            Please read and accept the Terms &amp; Conditions and Privacy Policy
-            before submitting your seller verification request.
-          </p>
-        </div>
+            <h2>Seller Verification Successful!</h2>
 
-        <div className="seller-policy-grid">
-          <div className="seller-policy-section">
-            <h3>Terms &amp; Conditions</h3>
+            <p>You have successfully become a seller.</p>
 
-            <textarea
-              className="seller-policy-box"
-              readOnly
-              value={`1. Eligibility
+            <p>
+              Please login again as a seller to access your Seller Dashboard.
+            </p>
+
+            <button
+              type="button"
+              className="seller-login-again-btn"
+              onClick={handleLoginAsSeller}
+            >
+              Login as Seller
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* ==================================
+                CLOSE BUTTON
+            ================================== */}
+
+            <button
+              type="button"
+              className="seller-modal-close"
+              onClick={onClose}
+              aria-label="Close"
+            >
+              ×
+            </button>
+
+            {/* ==================================
+                HEADER
+            ================================== */}
+
+            <div className="seller-modal-header">
+              <h2>Become A Seller</h2>
+
+              <p>
+                Please read and accept the Terms &amp; Conditions and Privacy
+                Policy before submitting your seller verification request.
+              </p>
+            </div>
+
+            {/* ==================================
+                POLICIES
+            ================================== */}
+
+            <div className="seller-policy-grid">
+              {/* TERMS */}
+
+              <div className="seller-policy-section">
+                <h3>Terms &amp; Conditions</h3>
+
+                <textarea
+                  className="seller-policy-box"
+                  readOnly
+                  value={`1. Eligibility
 
 You must provide accurate and complete information while registering as a seller.
 
@@ -267,23 +427,27 @@ By becoming a seller, you agree to follow the marketplace rules and seller requi
 8. Policy Changes
 
 eAuction may update these terms when necessary. Continued use of seller services means acceptance of the updated terms.`}
-              onScroll={handleTermsScroll}
-            />
+                  onScroll={handleTermsScroll}
+                />
 
-            <div className={`seller-scroll-status ${termsRead ? "read" : ""}`}>
-              {termsRead
-                ? "✓ Read all Terms & Conditions"
-                : "Scroll to read all terms"}
-            </div>
-          </div>
+                <div
+                  className={`seller-scroll-status ${termsRead ? "read" : ""}`}
+                >
+                  {termsRead
+                    ? "✓ Read all Terms & Conditions"
+                    : "Scroll to read all terms"}
+                </div>
+              </div>
 
-          <div className="seller-policy-section">
-            <h3>Privacy Policy</h3>
+              {/* PRIVACY */}
 
-            <textarea
-              className="seller-policy-box"
-              readOnly
-              value={`1. Information We Collect
+              <div className="seller-policy-section">
+                <h3>Privacy Policy</h3>
+
+                <textarea
+                  className="seller-policy-box"
+                  readOnly
+                  value={`1. Information We Collect
 
 We may collect information such as your name, contact details, and identity document information for seller verification.
 
@@ -314,157 +478,192 @@ You must provide accurate information and ensure that the submitted document bel
 8. Policy Updates
 
 This privacy policy may be updated from time to time to reflect changes in our services or legal requirements.`}
-              onScroll={handlePrivacyScroll}
-            />
-
-            <div
-              className={`seller-scroll-status ${privacyRead ? "read" : ""}`}
-            >
-              {privacyRead
-                ? "✓ Read all Privacy Policy"
-                : "Scroll to read all policy"}
-            </div>
-          </div>
-        </div>
-
-        <label
-          className={`seller-agreement ${!canAcceptTerms ? "disabled" : ""}`}
-        >
-          <input
-            type="checkbox"
-            checked={accepted}
-            disabled={!canAcceptTerms}
-            onChange={(event) => setAccepted(event.target.checked)}
-          />
-
-          <span>
-            I have read, understood and agree to the{" "}
-            <strong>Terms &amp; Conditions</strong> and{" "}
-            <strong>Privacy Policy</strong>.
-          </span>
-        </label>
-
-        <div className="seller-document-section">
-          <div className="seller-field">
-            <label htmlFor="documentType">Select Document</label>
-
-            <select
-              id="documentType"
-              value={documentType}
-              onChange={handleDocumentTypeChange}
-            >
-              <option value="">Select Document</option>
-              <option value="PAN_CARD">PAN Card</option>
-              <option value="AADHAAR_CARD">Aadhaar Card</option>
-            </select>
-          </div>
-
-          <div className="seller-field">
-            <label htmlFor="documentNumber">Enter Document Number</label>
-
-            <input
-              id="documentNumber"
-              type="text"
-              value={documentNumber}
-              onChange={handleDocumentNumberChange}
-              placeholder={
-                documentType === "PAN_CARD"
-                  ? "Enter the PAN card number"
-                  : documentType === "AADHAAR_CARD"
-                    ? "Enter the Aadhaar number"
-                    : "Select a document"
-              }
-              disabled={!documentType || documentVerified}
-              maxLength={
-                documentType === "PAN_CARD"
-                  ? 10
-                  : documentType === "AADHAAR_CARD"
-                    ? 14
-                    : undefined
-              }
-            />
-
-            {documentType === "PAN_CARD" && panCharacterCount < 10 && (
-              <p className="seller-document-note">
-                PAN Card must contain 10 characters.
-              </p>
-            )}
-
-            {documentType === "PAN_CARD" &&
-              panCharacterCount === 10 &&
-              !validateDocument() && (
-                <p className="seller-document-note">
-                  Enter a valid PAN number, for example ABCDE1234F.
-                </p>
-              )}
-
-            {documentType === "AADHAAR_CARD" && aadhaarDigitCount < 12 && (
-              <p className="seller-document-note">
-                Aadhaar must contain 12 digits.
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Verify button centered across the complete popup */}
-        {!documentVerified && (
-          <button
-            type="button"
-            className="verify-number-btn"
-            disabled={!canVerifyNumber}
-            onClick={handleVerifyNumber}
-          >
-            Verify
-          </button>
-        )}
-
-        {documentVerified && <div className="verified-badge">✓ Verified</div>}
-
-        {message && (
-          <div className={`seller-verification-message ${messageType}`}>
-            {message}
-          </div>
-        )}
-
-        {otpSent && (
-          <div className="seller-otp-section">
-            <div className="seller-otp-content">
-              <div className="seller-field">
-                <label htmlFor="sellerOtp">Enter OTP</label>
-
-                <input
-                  id="sellerOtp"
-                  type="text"
-                  inputMode="numeric"
-                  value={otp}
-                  onChange={handleOtpChange}
-                  placeholder="Enter 6-digit OTP"
-                  maxLength={6}
+                  onScroll={handlePrivacyScroll}
                 />
+
+                <div
+                  className={`seller-scroll-status ${
+                    privacyRead ? "read" : ""
+                  }`}
+                >
+                  {privacyRead
+                    ? "✓ Read all Privacy Policy"
+                    : "Scroll to read all policy"}
+                </div>
+              </div>
+            </div>
+
+            {/* ==================================
+                AGREEMENT
+            ================================== */}
+
+            <label
+              className={`seller-agreement ${
+                !canAcceptTerms ? "disabled" : ""
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={accepted}
+                disabled={!canAcceptTerms}
+                onChange={(event) => setAccepted(event.target.checked)}
+              />
+
+              <span>
+                I have read, understood and agree to the{" "}
+                <strong>Terms &amp; Conditions</strong> and{" "}
+                <strong>Privacy Policy</strong>.
+              </span>
+            </label>
+
+            {/* ==================================
+                DOCUMENT SECTION
+            ================================== */}
+
+            <div className="seller-document-section">
+              <div className="seller-field">
+                <label htmlFor="documentType">Select Document</label>
+
+                <select
+                  id="documentType"
+                  value={documentType}
+                  onChange={handleDocumentTypeChange}
+                >
+                  <option value="">Select Document</option>
+
+                  <option value="PAN_CARD">PAN Card</option>
+
+                  <option value="AADHAAR_CARD">Aadhaar Card</option>
+                </select>
               </div>
 
+              <div className="seller-field">
+                <label htmlFor="documentNumber">Enter Document Number</label>
+
+                <input
+                  id="documentNumber"
+                  type="text"
+                  value={documentNumber}
+                  onChange={handleDocumentNumberChange}
+                  placeholder={
+                    documentType === "PAN_CARD"
+                      ? "Enter the PAN card number"
+                      : documentType === "AADHAAR_CARD"
+                        ? "Enter the Aadhaar number"
+                        : "Select a document"
+                  }
+                  disabled={!documentType || documentVerified}
+                  maxLength={
+                    documentType === "PAN_CARD"
+                      ? 10
+                      : documentType === "AADHAAR_CARD"
+                        ? 14
+                        : undefined
+                  }
+                />
+
+                {documentType === "PAN_CARD" && panCharacterCount < 10 && (
+                  <p className="seller-document-note">
+                    PAN Card must contain 10 characters.
+                  </p>
+                )}
+
+                {documentType === "PAN_CARD" &&
+                  panCharacterCount === 10 &&
+                  !validateDocument() && (
+                    <p className="seller-document-note">
+                      Enter a valid PAN number, for example ABCDE1234F.
+                    </p>
+                  )}
+
+                {documentType === "AADHAAR_CARD" && aadhaarDigitCount < 12 && (
+                  <p className="seller-document-note">
+                    Aadhaar must contain 12 digits.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* ==================================
+                VERIFY DOCUMENT
+            ================================== */}
+
+            {!documentVerified && (
               <button
                 type="button"
-                className="verify-otp-btn"
-                disabled={!canVerifyOtp}
-                onClick={handleVerifyOtp}
+                className="verify-number-btn"
+                disabled={!canVerifyNumber}
+                onClick={handleVerifyNumber}
               >
-                Verify OTP
+                Verify
+              </button>
+            )}
+
+            {/* VERIFIED */}
+
+            {documentVerified && (
+              <div className="verified-badge">✓ Verified</div>
+            )}
+
+            {/* ==================================
+                MESSAGE
+            ================================== */}
+
+            {message && (
+              <div className={`seller-verification-message ${messageType}`}>
+                {message}
+              </div>
+            )}
+
+            {/* ==================================
+                OTP
+            ================================== */}
+
+            {otpSent && (
+              <div className="seller-otp-section">
+                <div className="seller-otp-content">
+                  <div className="seller-field">
+                    <label htmlFor="sellerOtp">Enter OTP</label>
+
+                    <input
+                      id="sellerOtp"
+                      type="text"
+                      inputMode="numeric"
+                      value={otp}
+                      onChange={handleOtpChange}
+                      placeholder="Enter 6-digit OTP"
+                      maxLength={6}
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    className="verify-otp-btn"
+                    disabled={!canVerifyOtp}
+                    onClick={handleVerifyOtp}
+                  >
+                    Verify OTP
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ==================================
+                VERIFY REQUEST
+            ================================== */}
+
+            <div className="seller-modal-footer">
+              <button
+                type="button"
+                className="verify-request-btn"
+                disabled={!canVerifyRequest}
+                onClick={handleVerifyRequest}
+              >
+                Verify Request
               </button>
             </div>
-          </div>
+          </>
         )}
-
-        <div className="seller-modal-footer">
-          <button
-            type="button"
-            className="verify-request-btn"
-            disabled={!canVerifyRequest}
-            onClick={handleVerifyRequest}
-          >
-            Verify Request
-          </button>
-        </div>
       </div>
     </div>
   );

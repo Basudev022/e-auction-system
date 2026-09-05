@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import Icon from "../Icon/Icon";
 
-function DashboardSidebar() {
+function DashboardSidebar({ onLogout, onBecomeSeller }) {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -41,38 +41,43 @@ function DashboardSidebar() {
 
       {/* SIDEBAR NAVIGATION */}
       <nav className="sidebar-nav">
-        <button className="nav-item active">
+        <button className="nav-item active" type="button">
           <Icon name="home" size={18} />
           <span>Overview</span>
         </button>
 
-        <button className="nav-item">
+        <button className="nav-item" type="button">
           <Icon name="gavel" size={18} />
           <span>My Bids</span>
         </button>
 
-        <button className="nav-item">
+        <button className="nav-item" type="button">
           <Icon name="heart" size={18} />
           <span>Watchlist</span>
         </button>
 
-        <button className="nav-item">
-          <Icon name="trophy" size={18} />
-          <span>Won Auctions</span>
+        {/* BECOME A SELLER */}
+        <button
+          className="nav-item sidebar-seller-button"
+          type="button"
+          onClick={onBecomeSeller}
+        >
+          <Icon name="user" size={18} />
+          <span>Become A Seller</span>
         </button>
 
-        <button className="nav-item">
+        <button className="nav-item" type="button">
           <Icon name="mail" size={18} />
           <span>Messages</span>
           <span className="message-count">2</span>
         </button>
 
-        <button className="nav-item">
+        <button className="nav-item" type="button">
           <Icon name="home" size={18} />
           <span>My Address</span>
         </button>
 
-        <button className="nav-item">
+        <button className="nav-item" type="button">
           <Icon name="creditCard" size={18} />
           <span>Payment Methods</span>
         </button>
@@ -84,8 +89,7 @@ function DashboardSidebar() {
 
         <p>We're here to help you with anything you need.</p>
 
-        <button>
-          <Icon name="phone" size={16} />
+        <button type="button">
           <span>Contact Support</span>
         </button>
       </div>

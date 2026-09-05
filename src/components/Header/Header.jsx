@@ -1,14 +1,28 @@
 import { useEffect, useState } from "react";
 
+import { getProductCategories } from "../../api/product/productApi";
 import { getCurrentUser } from "../../api/user/userApi";
+
 import Icon from "../Icon/Icon";
-import SellerVerificationModal from "../Seller/SellerVerificationModal";
 
 import "./Header.css";
 
-export default function Header({ onLogin, onLogout, dashboardMode = false }) {
-  const [activeLink, setActiveLink] = useState("Home");
-
+export default function Header({
+  onLogin,
+  onLogout,
+  onDashboard,
+  dashboardMode = false,
+  onSellerVerified,
+  onBecomeSeller,
+  isSeller = false,
+  isLoggedIn = false,
+  user,
+  onHome,
+  onViewAllAuctions,
+  onHowItWorks,
+  activeLink = "",
+  onActiveLinkChange,
+}) {
   const [location, setLocation] = useState({
     code: "--",
     name: "Locating...",
@@ -17,52 +31,110 @@ export default function Header({ onLogin, onLogout, dashboardMode = false }) {
 
   const [showCategories, setShowCategories] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  const [showSellerModal, setShowSellerModal] = useState(false);
+  // Categories will come from the backend API.
+  // Only categoryName is used.
+  const [categories, setCategories] = useState(["All Categories"]);
+
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const [userName, setUserName] = useState("User");
 
   // ==========================================
-  // CATEGORIES
-  // ==========================================
-
-  const categories = [
-    "All Categories",
-    "Electronics",
-    "Vehicles",
-    "Property",
-    "Furniture",
-    "Fashion",
-    "Jewelry",
-    "Industrial Equipment",
-    "Agriculture",
-  ];
-
-  // ==========================================
-  // GET LOGGED-IN USER
-  // DASHBOARD ONLY
+  // GET PRODUCT CATEGORIES
   // ==========================================
 
   useEffect(() => {
-    if (!dashboardMode) return;
+    const loadCategories = async () => {
+      try {
+        const data = await getProductCategories();
+
+        if (!Array.isArray(data)) {
+          setCategories(["All Categories"]);
+          return;
+        }
+
+        /*
+         * Backend response:
+         *
+         * [
+         *   {
+         *     categoryId: 1,
+         *     categoryName: "Electronics"
+         *   },
+         *   {
+         *     categoryId: 2,
+         *     categoryName: "Vehicles"
+         *   }
+         * ]
+         *
+         * Only categoryName is required in Header.
+         */
+
+        const categoryNames = data
+          .map((category) => category.categoryName)
+          .filter((categoryName) => categoryName);
+
+        setCategories(["All Categories", ...categoryNames]);
+      } catch (error) {
+        console.error("Failed to load product categories:", error);
+
+        setCategories(["All Categories"]);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
+  // ==========================================
+  // GET LOGGED-IN USER
+  // ==========================================
+
+  useEffect(() => {
+    // First use the user already stored in Redux.
+    if (user?.name) {
+      setUserName(user.name);
+      return;
+    }
+
+    // If Redux does not contain the name,
+    // get it from the backend.
+    if (!isLoggedIn && !dashboardMode) {
+      setUserName("User");
+      return;
+    }
 
     getCurrentUser()
-      .then((user) => {
-        if (user?.name) {
-          setUserName(user.name);
+      .then((currentUser) => {
+        if (currentUser?.name) {
+          setUserName(currentUser.name);
         }
       })
       .catch(() => {
         setUserName("User");
       });
-  }, [dashboardMode]);
+  }, [user, isLoggedIn, dashboardMode]);
 
   // ==========================================
   // GET USER LOCATION
   // ==========================================
 
   useEffect(() => {
+    const savedLocation = sessionStorage.getItem("eAuctionLocation");
+
+    if (savedLocation) {
+      try {
+        const parsedLocation = JSON.parse(savedLocation);
+
+        if (parsedLocation?.code && parsedLocation?.name) {
+          setLocation(parsedLocation);
+          return;
+        }
+      } catch {
+        sessionStorage.removeItem("eAuctionLocation");
+      }
+    }
+
     fetch("https://ipapi.co/json/")
       .then((response) => {
         if (!response.ok) {
@@ -75,19 +147,22 @@ export default function Header({ onLogin, onLogout, dashboardMode = false }) {
         if (data.country_code && data.country_name) {
           const countryCode = data.country_code.toLowerCase();
 
-          setLocation({
+          const detectedLocation = {
             code: data.country_code,
             name: data.country_name,
             flag: `https://flagcdn.com/w40/${countryCode}.png`,
-          });
+          };
+
+          setLocation(detectedLocation);
+
+          sessionStorage.setItem(
+            "eAuctionLocation",
+            JSON.stringify(detectedLocation),
+          );
         }
       })
       .catch(() => {
-        setLocation({
-          code: "--",
-          name: "Unknown",
-          flag: "",
-        });
+        // Keep "Locating..." instead of showing "Unknown".
       });
   }, []);
 
@@ -109,8 +184,57 @@ export default function Header({ onLogin, onLogout, dashboardMode = false }) {
   // NAVIGATION
   // ==========================================
 
-  const handleNavClick = (link) => {
-    setActiveLink(link);
+  const handleNavClick = (event, link) => {
+    event.preventDefault();
+
+    // Tell App.jsx which navigation item is active.
+    if (onActiveLinkChange) {
+      onActiveLinkChange(link);
+    }
+
+    // ==========================================
+    // HOME
+    // ==========================================
+
+    if (link === "Home") {
+      if (onHome) {
+        onHome();
+      }
+
+      return;
+    }
+
+    // ==========================================
+    // AUCTIONS
+    // ==========================================
+
+    if (link === "Auctions") {
+      if (onViewAllAuctions) {
+        onViewAllAuctions();
+      }
+
+      return;
+    }
+
+    // ==========================================
+    // HOW IT WORKS
+    // ==========================================
+
+    if (link === "How It Works") {
+      if (onHowItWorks) {
+        onHowItWorks();
+      }
+
+      return;
+    }
+
+    // ==========================================
+    // FAQ & SUPPORT
+    // ==========================================
+
+    if (link === "FAQ & Support") {
+      return;
+    }
   };
 
   // ==========================================
@@ -121,6 +245,30 @@ export default function Header({ onLogin, onLogout, dashboardMode = false }) {
     setShowProfileMenu((previous) => !previous);
   };
 
+  // ==========================================
+  // DASHBOARD
+  // ==========================================
+
+  const handleDashboard = () => {
+    setShowProfileMenu(false);
+
+    if (onDashboard) {
+      onDashboard();
+    }
+  };
+
+  // ==========================================
+  // ACCOUNT SETTINGS
+  // ==========================================
+
+  const handleAccountSettings = () => {
+    setShowProfileMenu(false);
+  };
+
+  // ==========================================
+  // LOGOUT
+  // ==========================================
+
   const handleLogout = () => {
     setShowProfileMenu(false);
 
@@ -130,7 +278,7 @@ export default function Header({ onLogin, onLogout, dashboardMode = false }) {
   };
 
   // ==========================================
-  // GET FIRST LETTER OF USER NAME
+  // USER INITIAL
   // ==========================================
 
   const userInitial = userName ? userName.charAt(0).toUpperCase() : "U";
@@ -140,20 +288,26 @@ export default function Header({ onLogin, onLogout, dashboardMode = false }) {
   // ==========================================
 
   const handleBecomeSeller = () => {
-    setShowSellerModal(true);
-  };
-
-  const handleCloseSellerModal = () => {
-    setShowSellerModal(false);
+    if (onBecomeSeller) {
+      onBecomeSeller();
+    }
   };
 
   return (
-    <header className="header page-container">
+    <header
+      className={`header page-container ${
+        dashboardMode ? "dashboard-header-fixed" : ""
+      }`}
+    >
       {/* ========================================
           BRAND
       ======================================== */}
 
-      <a href="/" className="brand" onClick={() => handleNavClick("Home")}>
+      <a
+        href="/"
+        className="brand"
+        onClick={(event) => handleNavClick(event, "Home")}
+      >
         <div className="brand-mark">
           <Icon name="hammer" size={25} />
         </div>
@@ -173,8 +327,6 @@ export default function Header({ onLogin, onLogout, dashboardMode = false }) {
       ======================================== */}
 
       <div className="search-wrap">
-        {/* CATEGORY */}
-
         <div className="category-wrapper">
           <button
             className="menu-circle"
@@ -203,8 +355,6 @@ export default function Header({ onLogin, onLogout, dashboardMode = false }) {
           )}
         </div>
 
-        {/* SEARCH BOX */}
-
         <div className="search-box">
           <input
             type="text"
@@ -216,7 +366,6 @@ export default function Header({ onLogin, onLogout, dashboardMode = false }) {
             aria-label="Search auctions"
           />
 
-          {/* Search icon remains inside the search bar */}
           <button aria-label="Search" type="button">
             <Icon name="search" size={19} />
           </button>
@@ -246,82 +395,62 @@ export default function Header({ onLogin, onLogout, dashboardMode = false }) {
       </div>
 
       {/* ========================================
-          BECOME A SELLER
-          DASHBOARD ONLY
+          HOMEPAGE NAVIGATION
       ======================================== */}
 
-      {dashboardMode && (
-        <button
-          type="button"
-          className="seller-link"
-          onClick={handleBecomeSeller}
+      <nav className="nav-links">
+        <a
+          href="/"
+          className={`nav-link ${activeLink === "Home" ? "active" : ""}`}
+          onClick={(event) => handleNavClick(event, "Home")}
         >
-          Become A Seller
-        </button>
-      )}
+          Home
+        </a>
+
+        <a
+          href="/auctions"
+          className={`nav-link ${activeLink === "Auctions" ? "active" : ""}`}
+          onClick={(event) => handleNavClick(event, "Auctions")}
+        >
+          Auctions
+        </a>
+
+        <a
+          href="/how-it-works"
+          className={`nav-link ${
+            activeLink === "How It Works" ? "active" : ""
+          }`}
+          onClick={(event) => handleNavClick(event, "How It Works")}
+        >
+          How It Works
+        </a>
+
+        <a
+          href="/support"
+          className={`nav-link ${
+            activeLink === "FAQ & Support" ? "active" : ""
+          }`}
+          onClick={(event) => handleNavClick(event, "FAQ & Support")}
+        >
+          FAQ &amp; Support
+        </a>
+      </nav>
 
       {/* ========================================
-          NAVIGATION
-          HOMEPAGE ONLY
+          LOGIN BUTTON
       ======================================== */}
 
-      {!dashboardMode && (
-        <nav className="nav-links">
-          <a
-            href="/"
-            className={`nav-link ${activeLink === "Home" ? "active" : ""}`}
-            onClick={() => handleNavClick("Home")}
-          >
-            Home
-          </a>
-
-          <a
-            href="/auctions"
-            className={`nav-link ${activeLink === "Auctions" ? "active" : ""}`}
-            onClick={() => handleNavClick("Auctions")}
-          >
-            Auctions
-          </a>
-
-          <a
-            href="/how-it-works"
-            className={`nav-link ${
-              activeLink === "How It Works" ? "active" : ""
-            }`}
-            onClick={() => handleNavClick("How It Works")}
-          >
-            How It Works
-          </a>
-
-          <a
-            href="/support"
-            className={`nav-link ${
-              activeLink === "FAQ & Support" ? "active" : ""
-            }`}
-            onClick={() => handleNavClick("FAQ & Support")}
-          >
-            FAQ &amp; Support
-          </a>
-        </nav>
-      )}
-
-      {/* ========================================
-          SIGNUP / LOGIN
-          HOMEPAGE ONLY
-      ======================================== */}
-
-      {!dashboardMode && (
+      {!isLoggedIn && !dashboardMode && (
         <button className="login-btn" type="button" onClick={onLogin}>
           SignUp/Login
         </button>
       )}
 
       {/* ========================================
-          DASHBOARD PROFILE
-          DASHBOARD ONLY
+          PROFILE
       ======================================== */}
 
-      {dashboardMode && (
+      {(isLoggedIn || dashboardMode) && (
         <div className="profile-wrapper">
           <button
             className="profile-btn"
@@ -329,23 +458,30 @@ export default function Header({ onLogin, onLogout, dashboardMode = false }) {
             onClick={handleProfileClick}
             aria-label="Profile menu"
           >
-            {/* Actual user's first letter */}
             <span className="profile-avatar">{userInitial}</span>
 
-            {/* Actual user's name */}
             <span className="profile-name">{userName}</span>
 
-            {/* Arrow */}
             <span className="profile-arrow">{showProfileMenu ? "▲" : "▼"}</span>
           </button>
 
-          {/* Profile dropdown */}
           {showProfileMenu && (
             <div className="profile-menu">
+              {/* Dashboard should NOT appear inside Dashboard */}
+              {!dashboardMode && (
+                <button
+                  type="button"
+                  className="profile-menu-item"
+                  onClick={handleDashboard}
+                >
+                  Dashboard
+                </button>
+              )}
+
               <button
                 type="button"
                 className="profile-menu-item"
-                onClick={() => setShowProfileMenu(false)}
+                onClick={handleAccountSettings}
               >
                 Account Settings
               </button>
@@ -360,15 +496,6 @@ export default function Header({ onLogin, onLogout, dashboardMode = false }) {
             </div>
           )}
         </div>
-      )}
-
-      {/* ========================================
-          SELLER VERIFICATION MODAL
-          DASHBOARD ONLY
-      ======================================== */}
-
-      {dashboardMode && showSellerModal && (
-        <SellerVerificationModal onClose={handleCloseSellerModal} />
       )}
     </header>
   );

@@ -1,7 +1,14 @@
 import { useMemo, useState } from "react";
+
 import watch from "../../assets/images/watch.png";
 import AuctionCard from "../../components/AuctionCard/AuctionCard";
+import Header from "../../components/Header/Header";
+
 import "./AllAuction.css";
+
+/* =========================================================
+   CATEGORIES
+========================================================= */
 
 const categories = [
   { name: "Electronics", count: 128 },
@@ -15,7 +22,10 @@ const categories = [
   { name: "Books & Media", count: 28 },
 ];
 
-/* 20 items = exactly 4 pages when itemsPerPage = 5 */
+/* =========================================================
+   AUCTIONS
+========================================================= */
+
 const auctions = [
   {
     id: 1,
@@ -67,7 +77,6 @@ const auctions = [
     price: 325000,
     type: "Ending Soon",
   },
-
   {
     id: 6,
     image: watch,
@@ -118,7 +127,6 @@ const auctions = [
     price: 185000,
     type: "Live Auctions",
   },
-
   {
     id: 11,
     image: watch,
@@ -169,7 +177,6 @@ const auctions = [
     price: 18500,
     type: "Ending Soon",
   },
-
   {
     id: 16,
     image: watch,
@@ -222,22 +229,33 @@ const auctions = [
   },
 ];
 
-export default function AllAuction() {
+/* =========================================================
+   ALL AUCTIONS
+========================================================= */
+
+export default function AllAuction({
+  onLogin,
+  onLogout,
+  isLoggedIn,
+  user,
+  onDashboard,
+  onHome,
+  onViewAllAuctions,
+  onHowItWorks,
+  activeNav,
+  onActiveLinkChange,
+}) {
   const [search, setSearch] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [auctionType, setAuctionType] = useState("All Types");
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(10000000);
-  const [sortBy, setSortBy] = useState("Ending Soon");
-  const [viewMode, setViewMode] = useState("list");
-  const [currentPage, setCurrentPage] = useState(1);
 
-  // List view = 5 cards per page
-  // Grid view = 6 cards per page (2 columns × 3 rows)
-  const itemsPerPage = viewMode === "grid" ? 6 : 5;
+  /* =========================================================
+     CATEGORY FILTER
+  ========================================================= */
 
   const handleCategoryChange = (category) => {
-    setCurrentPage(1);
     setSelectedCategories((prev) =>
       prev.includes(category)
         ? prev.filter((item) => item !== category)
@@ -245,18 +263,26 @@ export default function AllAuction() {
     );
   };
 
+  /* =========================================================
+     CLEAR FILTERS
+  ========================================================= */
+
   const clearFilters = () => {
     setSearch("");
     setSelectedCategories([]);
     setAuctionType("All Types");
     setMinPrice(0);
     setMaxPrice(10000000);
-    setSortBy("Ending Soon");
-    setCurrentPage(1);
   };
+
+  /* =========================================================
+     FILTER + SORT
+  ========================================================= */
 
   const filteredAuctions = useMemo(() => {
     let result = [...auctions];
+
+    /* SEARCH */
 
     if (search.trim()) {
       const value = search.toLowerCase().trim();
@@ -269,299 +295,222 @@ export default function AllAuction() {
       );
     }
 
+    /* CATEGORY */
+
     if (selectedCategories.length > 0) {
       result = result.filter((auction) =>
         selectedCategories.includes(auction.category),
       );
     }
 
+    /* PRICE */
+
     result = result.filter(
       (auction) => auction.price >= minPrice && auction.price <= maxPrice,
     );
+
+    /* AUCTION TYPE */
 
     if (auctionType !== "All Types") {
       result = result.filter((auction) => auction.type === auctionType);
     }
 
+    /* TIME CONVERTER */
+
     const convertTime = (time) => {
       const match = time.match(/(\d+)h\s+(\d+)m\s+(\d+)s/);
+
       if (!match) return Infinity;
 
       const [, hours, minutes, seconds] = match;
+
       return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
     };
 
-    if (sortBy === "Ending Soon") {
-      result.sort((a, b) => convertTime(a.timeLeft) - convertTime(b.timeLeft));
-    }
-
-    if (sortBy === "Price: Low to High") {
-      result.sort((a, b) => a.price - b.price);
-    }
-
-    if (sortBy === "Price: High to Low") {
-      result.sort((a, b) => b.price - a.price);
-    }
-
     return result;
-  }, [search, selectedCategories, minPrice, maxPrice, auctionType, sortBy]);
+  }, [search, selectedCategories, minPrice, maxPrice, auctionType]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredAuctions.length / itemsPerPage),
-  );
+  /* =========================================================
+     ALL FILTERED AUCTIONS
+  ========================================================= */
 
-  const safeCurrentPage = Math.min(currentPage, totalPages);
-  const startIndex = (safeCurrentPage - 1) * itemsPerPage;
+  const currentAuctions = filteredAuctions;
 
-  const currentAuctions = filteredAuctions.slice(
-    startIndex,
-    startIndex + itemsPerPage,
-  );
-
-  const goToPage = (page) => {
-    setCurrentPage(Math.min(Math.max(page, 1), totalPages));
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  /* =========================================================
+     RETURN
+  ========================================================= */
 
   return (
-    <div className="all-auctions-page">
-      <div className="all-auctions-container">
-        <div className="auction-header">
-          <h1>All Auctions</h1>
-          <p>Discover and bid on amazing items.</p>
-        </div>
+    <>
+      <Header
+        onLogin={onLogin}
+        onLogout={onLogout}
+        isLoggedIn={isLoggedIn}
+        user={user}
+        onDashboard={onDashboard}
+        onHome={onHome}
+        onViewAllAuctions={onViewAllAuctions}
+        onHowItWorks={onHowItWorks}
+        activeLink={activeNav || "Auctions"}
+        onActiveLinkChange={onActiveLinkChange}
+      />
 
-        <div className="auction-toolbar">
-          <div className="search-box">
-            <span className="search-icon">⌕</span>
-            <input
-              type="text"
-              placeholder="Search auctions..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setCurrentPage(1);
-              }}
-            />
-          </div>
+      <div className="all-auctions-page">
+        <div className="all-auctions-container">
+          <div className="auction-main">
+            {/* =================================================
+                LEFT FILTER SIDEBAR
+            ================================================= */}
 
-          <select
-            className="sort-select"
-            value={sortBy}
-            onChange={(e) => {
-              setSortBy(e.target.value);
-              setCurrentPage(1);
-            }}
-          >
-            <option value="Ending Soon">Sort by: Ending Soon</option>
-            <option value="Price: Low to High">Price: Low to High</option>
-            <option value="Price: High to Low">Price: High to Low</option>
-          </select>
+            <aside className="auction-sidebar">
+              {/* CATEGORIES */}
 
-          <div className="view-switcher">
-            <button
-              type="button"
-              className={viewMode === "list" ? "active" : ""}
-              onClick={() => setViewMode("list")}
-              aria-label="List view"
-            >
-              ▤
-            </button>
+              <div className="filter-section">
+                <h3>CATEGORIES</h3>
 
-            <button
-              type="button"
-              className={viewMode === "grid" ? "active" : ""}
-              onClick={() => setViewMode("grid")}
-              aria-label="Grid view"
-            >
-              ▦
-            </button>
-          </div>
-        </div>
-
-        <div className="auction-main">
-          <aside className="auction-sidebar">
-            <div className="filter-section">
-              <h3>CATEGORIES</h3>
-
-              <label className="filter-checkbox">
-                <input
-                  type="checkbox"
-                  checked={selectedCategories.length === 0}
-                  onChange={() => {
-                    setSelectedCategories([]);
-                    setCurrentPage(1);
-                  }}
-                />
-                <span className="category-name">All Categories</span>
-              </label>
-
-              {categories.map((category) => (
-                <label className="filter-checkbox" key={category.name}>
+                <label className="filter-checkbox">
                   <input
                     type="checkbox"
-                    checked={selectedCategories.includes(category.name)}
-                    onChange={() => handleCategoryChange(category.name)}
-                  />
-                  <span className="category-name">{category.name}</span>
-                  <span className="category-count">{category.count}</span>
-                </label>
-              ))}
-            </div>
-
-            <div className="filter-section">
-              <h3>PRICE RANGE</h3>
-
-              <div className="range-wrapper">
-                <input
-                  type="range"
-                  min="0"
-                  max="10000000"
-                  step="5000"
-                  value={minPrice}
-                  onChange={(e) => {
-                    const value = Number(e.target.value);
-                    if (value <= maxPrice) {
-                      setMinPrice(value);
-                      setCurrentPage(1);
-                    }
-                  }}
-                  className="range-input"
-                />
-
-                <input
-                  type="range"
-                  min="0"
-                  max="10000000"
-                  step="5000"
-                  value={maxPrice}
-                  onChange={(e) => {
-                    const value = Number(e.target.value);
-                    if (value >= minPrice) {
-                      setMaxPrice(value);
-                      setCurrentPage(1);
-                    }
-                  }}
-                  className="range-input"
-                />
-              </div>
-
-              <div className="price-labels">
-                <span>Min</span>
-                <span>Max</span>
-              </div>
-            </div>
-
-            <div className="filter-section">
-              <h3>AUCTION TYPE</h3>
-
-              {[
-                "All Types",
-                "Live Auctions",
-                "Upcoming Auctions",
-                "Ending Soon",
-              ].map((type) => (
-                <label className="radio-option" key={type}>
-                  <input
-                    type="radio"
-                    name="auctionType"
-                    value={type}
-                    checked={auctionType === type}
-                    onChange={(e) => {
-                      setAuctionType(e.target.value);
-                      setCurrentPage(1);
+                    checked={selectedCategories.length === 0}
+                    onChange={() => {
+                      setSelectedCategories([]);
                     }}
                   />
-                  <span>{type}</span>
+
+                  <span className="category-name">All Categories</span>
                 </label>
-              ))}
-            </div>
 
-            <button
-              type="button"
-              className="clear-filters-btn"
-              onClick={clearFilters}
-            >
-              Clear Filters
-            </button>
-          </aside>
+                {categories.map((category) => (
+                  <label className="filter-checkbox" key={category.name}>
+                    <input
+                      type="checkbox"
+                      checked={selectedCategories.includes(category.name)}
+                      onChange={() => handleCategoryChange(category.name)}
+                    />
 
-          <section className="auction-results">
-            {currentAuctions.length > 0 ? (
-              <div
-                className={
-                  viewMode === "grid"
-                    ? "auction-list grid-view"
-                    : "auction-list"
-                }
-              >
-                {currentAuctions.map((auction) => (
-                  <AuctionCard
-                    key={auction.id}
-                    image={auction.image}
-                    title={auction.title}
-                    seller={auction.seller}
-                    category={auction.category}
-                    timeLeft={auction.timeLeft}
+                    <span className="category-name">{category.name}</span>
+
+                    <span className="category-count">{category.count}</span>
+                  </label>
+                ))}
+              </div>
+
+              {/* PRICE RANGE */}
+
+              <div className="filter-section">
+                <h3>PRICE RANGE</h3>
+
+                <div className="range-wrapper">
+                  <input
+                    type="range"
+                    min="0"
+                    max="10000000"
+                    step="5000"
+                    value={minPrice}
+                    onChange={(e) => {
+                      const value = Number(e.target.value);
+
+                      if (value <= maxPrice) {
+                        setMinPrice(value);
+                      }
+                    }}
+                    className="range-input"
                   />
+
+                  <input
+                    type="range"
+                    min="0"
+                    max="10000000"
+                    step="5000"
+                    value={maxPrice}
+                    onChange={(e) => {
+                      const value = Number(e.target.value);
+
+                      if (value >= minPrice) {
+                        setMaxPrice(value);
+                      }
+                    }}
+                    className="range-input"
+                  />
+                </div>
+
+                <div className="price-labels">
+                  <span>Min</span>
+                  <span>Max</span>
+                </div>
+              </div>
+
+              {/* AUCTION TYPE */}
+
+              <div className="filter-section">
+                <h3>AUCTION TYPE</h3>
+
+                {[
+                  "All Types",
+                  "Live Auctions",
+                  "Upcoming Auctions",
+                  "Ending Soon",
+                ].map((type) => (
+                  <label className="radio-option" key={type}>
+                    <input
+                      type="radio"
+                      name="auctionType"
+                      value={type}
+                      checked={auctionType === type}
+                      onChange={(e) => {
+                        setAuctionType(e.target.value);
+                      }}
+                    />
+
+                    <span>{type}</span>
+                  </label>
                 ))}
               </div>
-            ) : (
-              <div className="no-auctions">
-                <h3>No auctions found</h3>
-                <p>Try changing your search or filter options.</p>
-                <button type="button" onClick={clearFilters}>
-                  Clear Filters
-                </button>
-              </div>
-            )}
 
-            <div className="auction-pagination">
-              <span className="pagination-info">
-                Showing {filteredAuctions.length === 0 ? 0 : startIndex + 1} to{" "}
-                {Math.min(startIndex + itemsPerPage, filteredAuctions.length)}{" "}
-                of {filteredAuctions.length} auctions
-              </span>
+              {/* CLEAR FILTERS */}
 
-              <div className="pagination-buttons">
-                <button
-                  type="button"
-                  disabled={safeCurrentPage === 1}
-                  onClick={() => goToPage(safeCurrentPage - 1)}
-                  aria-label="Previous page"
-                >
-                  ‹
-                </button>
+              <button
+                type="button"
+                className="clear-filters-btn"
+                onClick={clearFilters}
+              >
+                Clear Filters
+              </button>
+            </aside>
 
-                {/* Always displays pages 1, 2, 3, 4 when all 20 items are visible. */}
-                {Array.from(
-                  { length: totalPages },
-                  (_, index) => index + 1,
-                ).map((page) => (
-                  <button
-                    type="button"
-                    key={page}
-                    className={safeCurrentPage === page ? "active" : ""}
-                    onClick={() => goToPage(page)}
-                  >
-                    {page}
+            {/* =================================================
+                AUCTION RESULTS
+            ================================================= */}
+
+            <section className="auction-results">
+              {currentAuctions.length > 0 ? (
+                <div className="auction-list">
+                  {currentAuctions.map((auction) => (
+                    <AuctionCard
+                      key={auction.id}
+                      image={auction.image}
+                      title={auction.title}
+                      seller={auction.seller}
+                      category={auction.category}
+                      timeLeft={auction.timeLeft}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="no-auctions">
+                  <h3>No auctions found</h3>
+
+                  <p>Try changing your search or filter options.</p>
+
+                  <button type="button" onClick={clearFilters}>
+                    Clear Filters
                   </button>
-                ))}
-
-                <button
-                  type="button"
-                  disabled={safeCurrentPage === totalPages}
-                  onClick={() => goToPage(safeCurrentPage + 1)}
-                  aria-label="Next page"
-                >
-                  ›
-                </button>
-              </div>
-            </div>
-          </section>
+                </div>
+              )}
+            </section>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

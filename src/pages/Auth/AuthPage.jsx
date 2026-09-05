@@ -34,6 +34,26 @@ export default function AuthPage({ onClose, onLoginSuccess }) {
     }
   };
 
+  /*
+   * =========================
+   * LOGIN SUCCESS
+   * =========================
+   *
+   * LoginForm sends:
+   *
+   * buyer  -> Buyer Dashboard
+   * seller -> Seller Dashboard
+   *
+   * The selected login type is
+   * passed to App.jsx.
+   */
+
+  const handleLoginSuccess = (loginType) => {
+    if (onLoginSuccess) {
+      onLoginSuccess(loginType);
+    }
+  };
+
   return (
     <div className="auth-overlay" onMouseDown={handleOverlayClick}>
       <div className="auth-modal">
@@ -220,7 +240,7 @@ export default function AuthPage({ onClose, onLoginSuccess }) {
             <div className="visual-security">
               <ShieldCheck size={14} />
 
-              <span>Secure & trusted platform</span>
+              <span>Secure &amp; trusted platform</span>
             </div>
           </div>
         </section>
@@ -260,7 +280,7 @@ export default function AuthPage({ onClose, onLoginSuccess }) {
             {activeTab === "login" ? (
               <LoginForm
                 setActiveTab={setActiveTab}
-                onLoginSuccess={onLoginSuccess}
+                onLoginSuccess={handleLoginSuccess}
               />
             ) : (
               <RegisterForm setActiveTab={setActiveTab} />

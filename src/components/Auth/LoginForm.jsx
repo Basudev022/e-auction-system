@@ -24,87 +24,186 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  /*
-   * =========================
-   * PREFILL REGISTERED EMAIL
-   * =========================
-   *
-   * After registration, RegisterForm stores
-   * the registered user in Redux.
-   *
-   * We use the registered email here.
-   */
+  // ==========================================
+  // LOGIN TYPE
+  // ==========================================
+
+  const [loginType, setLoginType] = useState("buyer");
+
+  // ==========================================
+  // PREFILL REGISTERED EMAIL
+  // ==========================================
+
   useEffect(() => {
     if (registeredUser?.email) {
       setEmail(registeredUser.email);
     }
   }, [registeredUser]);
 
-  /*
-   * =========================
-   * LOGIN
-   * =========================
-   */
+  // ==========================================
+  // PREFILL SELLER EMAIL
+  // ==========================================
+  //
+  // When the user selects "Login as Seller",
+  // use the email saved during the previous
+  // Buyer login / seller verification flow.
+  //
+  // Password is NEVER stored in localStorage.
+  // ==========================================
+
+  useEffect(() => {
+    if (loginType === "seller") {
+      const sellerEmail = localStorage.getItem("sellerEmail");
+
+      if (sellerEmail) {
+        setEmail(sellerEmail);
+      }
+    } else if (registeredUser?.email) {
+      setEmail(registeredUser.email);
+    }
+  }, [loginType, registeredUser]);
+
+  // ==========================================
+  // LOGIN TYPE CHANGE
+  // ==========================================
+
+  const handleLoginTypeChange = (type) => {
+    setLoginType(type);
+
+    if (error) {
+      dispatch(clearAuthError());
+    }
+
+    if (type === "seller") {
+      const sellerEmail = localStorage.getItem("sellerEmail");
+
+      if (sellerEmail) {
+        setEmail(sellerEmail);
+      }
+    } else if (registeredUser?.email) {
+      setEmail(registeredUser.email);
+    } else {
+      setEmail("");
+    }
+
+    /*
+     * Always clear the password when changing
+     * between Buyer and Seller login.
+     *
+     * Password is never stored anywhere.
+     */
+    setPassword("");
+  };
+
+  // ==========================================
+  // LOGIN
+  // ==========================================
 
   const handleLogin = async (event) => {
     event.preventDefault();
 
-    /*
-     * Check required fields
-     */
+    // ========================================
+    // CHECK REQUIRED FIELDS
+    // ========================================
+
     if (!email.trim() || !password) {
       dispatch(loginFailure("Email and password are required."));
       return;
     }
 
-    /*
-     * Start loading
-     */
+    // ========================================
+    // START LOADING
+    // ========================================
+
     dispatch(loginStart());
 
     try {
-      /*
-       * Login request data
-       */
+      // ======================================
+      // LOGIN REQUEST
+      // ======================================
+
       const loginData = {
         email: email.trim(),
         password: password,
       };
 
       console.log("========== LOGIN REQUEST ==========");
+      console.log("Login Type:", loginType);
       console.log("Email:", loginData.email);
       console.log("===================================");
 
-      /*
-       * Call Spring Boot login API
-       */
+      // ======================================
+      // CALL SPRING BOOT LOGIN API
+      // ======================================
+
       const response = await loginUser(loginData);
 
-      /*
-       * Login successful
-       */
+      // ======================================
+      // LOGIN SUCCESS
+      // ======================================
+
       console.log("========== LOGIN SUCCESS ==========");
+      console.log("Login Type:", loginType);
       console.log("Response:", response);
       console.log("===================================");
 
-      /*
-       * Save token + user information
-       * into Redux and localStorage.
-       */
+      // ======================================
+      // SAVE TOKEN + USER INFORMATION
+      // ======================================
+
       dispatch(loginSuccess(response));
 
-      /*
-       * Tell App.jsx that login succeeded.
-       *
-       * App.jsx will then display Dashboard.
-       */
-      onLoginSuccess();
+      // ======================================
+      // SAVE LOGIN TYPE
+      // ======================================
+      //
+      // App.jsx uses this value to decide
+      // which dashboard should be displayed.
+      //
+      // buyer  -> Buyer Dashboard
+      // seller -> Seller Dashboard
+      // ======================================
+
+      localStorage.setItem("loginType", loginType);
+
+      // ======================================
+      // SAVE CURRENT EMAIL
+      // ======================================
+      //
+      // Save the email for both Buyer and
+      // Seller login.
+      //
+      // This supports:
+      //
+      // Buyer Login
+      //      ↓
+      // Buyer Dashboard
+      //      ↓
+      // Become A Seller
+      //      ↓
+      // Seller Verification
+      //      ↓
+      // Login as Seller
+      //      ↓
+      // Same email appears automatically
+      //
+      // IMPORTANT:
+      // Password is NEVER stored.
+      // ======================================
+
+      localStorage.setItem("sellerEmail", email.trim());
+
+      // ======================================
+      // TELL AUTH PAGE / APP LOGIN SUCCEEDED
+      // ======================================
+
+      if (onLoginSuccess) {
+        onLoginSuccess(loginType);
+      }
     } catch (error) {
-      /*
-       * =========================
-       * DETAILED LOGIN ERROR
-       * =========================
-       */
+      // ======================================
+      // DETAILED LOGIN ERROR
+      // ======================================
 
       console.error("========== LOGIN ERROR ==========");
       console.error("Error:", error);
@@ -113,65 +212,52 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
       console.error("Message:", error.message);
       console.error("=================================");
 
-      /*
-       * Default error message
-       */
+      // ======================================
+      // DEFAULT ERROR MESSAGE
+      // ======================================
+
       let errorMessage = "Login failed.";
 
-      /*
-       * Get actual backend error
-       */
+      // ======================================
+      // GET ACTUAL BACKEND ERROR
+      // ======================================
+
       if (error.response?.data) {
-        /*
-         * Backend returned plain text
-         */
+        // Backend returned plain text
         if (typeof error.response.data === "string") {
           errorMessage = error.response.data;
-        } else if (error.response.data.message) {
+        }
 
-        /*
-         * Backend returned:
-         * {
-         *   "message": "..."
-         * }
-         */
+        // Backend returned { message: "..." }
+        else if (error.response.data.message) {
           errorMessage = error.response.data.message;
-        } else if (error.response.data.error) {
+        }
 
-        /*
-         * Backend returned:
-         * {
-         *   "error": "..."
-         * }
-         */
+        // Backend returned { error: "..." }
+        else if (error.response.data.error) {
           errorMessage = error.response.data.error;
-        } else {
+        }
 
-        /*
-         * Backend returned another JSON object
-         */
+        // Backend returned another JSON object
+        else {
           errorMessage = JSON.stringify(error.response.data);
         }
       } else if (error.message) {
-
-      /*
-       * Network / Axios error
-       */
+        // Network / Axios error
         errorMessage = error.message;
       }
 
-      /*
-       * Save error in Redux
-       */
+      // ======================================
+      // SAVE ERROR IN REDUX
+      // ======================================
+
       dispatch(loginFailure(errorMessage));
     }
   };
 
-  /*
-   * =========================
-   * EMAIL CHANGE
-   * =========================
-   */
+  // ==========================================
+  // EMAIL CHANGE
+  // ==========================================
 
   const handleEmailChange = (event) => {
     setEmail(event.target.value);
@@ -181,11 +267,9 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
     }
   };
 
-  /*
-   * =========================
-   * PASSWORD CHANGE
-   * =========================
-   */
+  // ==========================================
+  // PASSWORD CHANGE
+  // ==========================================
 
   const handlePasswordChange = (event) => {
     setPassword(event.target.value);
@@ -195,21 +279,17 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
     }
   };
 
-  /*
-   * =========================
-   * GOOGLE LOGIN
-   * =========================
-   */
+  // ==========================================
+  // GOOGLE LOGIN
+  // ==========================================
 
   const handleGoogleLogin = () => {
     window.location.href = "http://localhost:8080/oauth2/authorization/google";
   };
 
-  /*
-   * =========================
-   * FACEBOOK LOGIN
-   * =========================
-   */
+  // ==========================================
+  // FACEBOOK LOGIN
+  // ==========================================
 
   const handleFacebookLogin = () => {
     window.location.href =
@@ -229,6 +309,38 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
       </div>
 
       <form onSubmit={handleLogin}>
+        {/* =========================
+            LOGIN TYPE
+        ========================= */}
+
+        <div className="login-type-options">
+          <label className="login-type-option">
+            <input
+              type="radio"
+              name="loginType"
+              value="buyer"
+              checked={loginType === "buyer"}
+              onChange={() => handleLoginTypeChange("buyer")}
+              disabled={isLoading}
+            />
+
+            <span>Login as Buyer</span>
+          </label>
+
+          <label className="login-type-option">
+            <input
+              type="radio"
+              name="loginType"
+              value="seller"
+              checked={loginType === "seller"}
+              onChange={() => handleLoginTypeChange("seller")}
+              disabled={isLoading}
+            />
+
+            <span>Login as Seller</span>
+          </label>
+        </div>
+
         {/* =========================
             EMAIL
         ========================= */}

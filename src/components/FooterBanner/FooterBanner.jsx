@@ -3,7 +3,7 @@ import "./FooterBanner.css";
 export default function FooterBanner() {
   return (
     <footer className="footer-banner">
-      <div className="footer-content page-container">
+      <div className="footer-content">
         {/* BRAND */}
         <div className="footer-column footer-brand">
           <div className="footer-brand-name">
@@ -69,7 +69,7 @@ export default function FooterBanner() {
 
       {/* BOTTOM BAR */}
       <div className="footer-bottom">
-        <div className="footer-bottom-content page-container">
+        <div className="footer-bottom-content">
           <p>© 2026 eAuction. All Rights Reserved.</p>
 
           <p>

@@ -9,26 +9,45 @@ import "./Home.css";
 
 export default function Home({
   onLogin,
+  onLogout,
+  isLoggedIn,
+  user,
+  onDashboard,
   onViewAllAuctions,
+  onHome,
+  onHowItWorks,
+  activeNav,
+  onActiveLinkChange,
 }) {
   return (
     <>
-      <Header onLogin={onLogin} />
+      <Header
+        onLogin={onLogin}
+        onLogout={onLogout}
+        isLoggedIn={isLoggedIn}
+        user={user}
+        onDashboard={onDashboard}
+        onHome={onHome}
+        onViewAllAuctions={onViewAllAuctions}
+        onHowItWorks={onHowItWorks}
+        activeLink={activeNav}
+        onActiveLinkChange={onActiveLinkChange}
+      />
 
       <main>
         <Hero />
 
         <div className="auction-content">
           <div className="auction-left">
-            <TrendingAuctions
-              onViewAllAuctions={onViewAllAuctions}
-            />
+            <TrendingAuctions onViewAllAuctions={onViewAllAuctions} />
           </div>
         </div>
 
         <TrustBar />
 
-        <HowItWorks />
+        <section id="how-it-works">
+          <HowItWorks />
+        </section>
       </main>
 
       <Footer />

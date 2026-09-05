@@ -1669,3 +1669,39 @@
     padding-top: 30px;
   }
 }
+
+/* Login Type Radio Buttons */
+
+.login-type-options {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-bottom: 18px;
+}
+
+.login-type-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #303734;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-type-option input[type="radio"] {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: #087d46;
+  cursor: pointer;
+}
+
+.login-type-option input[type="radio"]:checked {
+  accent-color: #087d46;
+}
+
+.login-type-option input[type="radio"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
