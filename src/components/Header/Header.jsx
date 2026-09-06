@@ -12,6 +12,7 @@ export default function Header({
   onLogout,
   onDashboard,
   dashboardMode = false,
+  sellerDashboardMode = false,
   onSellerVerified,
   onBecomeSeller,
   isSeller = false,
@@ -246,7 +247,7 @@ export default function Header({
   };
 
   // ==========================================
-  // DASHBOARD
+  // BUYER DASHBOARD
   // ==========================================
 
   const handleDashboard = () => {
@@ -467,8 +468,19 @@ export default function Header({
 
           {showProfileMenu && (
             <div className="profile-menu">
-              {/* Dashboard should NOT appear inside Dashboard */}
-              {!dashboardMode && (
+              {/* SELLER DASHBOARD */}
+              {sellerDashboardMode && (
+                <button
+                  type="button"
+                  className="profile-menu-item"
+                  onClick={handleDashboard}
+                >
+                  Buyer Dashboard
+                </button>
+              )}
+
+              {/* NORMAL HOME / ALL AUCTIONS */}
+              {!sellerDashboardMode && !dashboardMode && (
                 <button
                   type="button"
                   className="profile-menu-item"
@@ -478,6 +490,7 @@ export default function Header({
                 </button>
               )}
 
+              {/* ACCOUNT SETTINGS */}
               <button
                 type="button"
                 className="profile-menu-item"
@@ -486,6 +499,7 @@ export default function Header({
                 Account Settings
               </button>
 
+              {/* LOGOUT */}
               <button
                 type="button"
                 className="profile-menu-item logout-item"

@@ -43,6 +43,7 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
   // ==========================================
   // PREFILL SELLER EMAIL
   // ==========================================
+
   //
   // When the user selects "Login as Seller",
   // use the email saved during the previous
@@ -139,29 +140,77 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
       const response = await loginUser(loginData);
 
       // ======================================
+      // GET USER ROLE FROM BACKEND
+      // ======================================
+
+      const backendRole = String(response?.userRole || "").toUpperCase();
+
+      // ======================================
+      // CONVERT SELECTED RADIO TO ROLE
+      // ======================================
+
+      const selectedRole = loginType === "buyer" ? "BUYER" : "SELLER";
+
+      console.log("========== LOGIN RESPONSE ==========");
+      console.log("Selected Login Type:", selectedRole);
+      console.log("Backend User Role:", backendRole);
+      console.log("Response:", response);
+      console.log("====================================");
+
+      // ======================================
+      // ROLE / ACCESS CHECK
+      // ======================================
+
+      /*
+       * BUYER LOGIN
+       *
+       * Both BUYER and SELLER accounts can
+       * log in using "Login as Buyer".
+       *
+       * BUYER  -> Buyer Dashboard  ✅
+       * SELLER -> Buyer Dashboard  ✅
+       */
+
+      if (selectedRole === "BUYER") {
+        if (backendRole !== "BUYER" && backendRole !== "SELLER") {
+          dispatch(
+            loginFailure("This account is not eligible for Buyer login."),
+          );
+          return;
+        }
+      }
+
+      /*
+       * SELLER LOGIN
+       *
+       * Only a SELLER account can use
+       * "Login as Seller".
+       *
+       * SELLER -> Seller Dashboard  ✅
+       * BUYER  -> Seller Dashboard  ❌
+       */
+
+      if (selectedRole === "SELLER") {
+        if (backendRole !== "SELLER") {
+          dispatch(loginFailure("This account is not registered as a Seller."));
+          return;
+        }
+      }
+
+      // ======================================
       // LOGIN SUCCESS
       // ======================================
 
-      console.log("========== LOGIN SUCCESS ==========");
-      console.log("Login Type:", loginType);
-      console.log("Response:", response);
-      console.log("===================================");
-
-      // ======================================
-      // SAVE TOKEN + USER INFORMATION
-      // ======================================
+      /*
+       * JWT + user information are stored
+       * only after the role/access check
+       * succeeds.
+       */
 
       dispatch(loginSuccess(response));
 
       // ======================================
       // SAVE LOGIN TYPE
-      // ======================================
-      //
-      // App.jsx uses this value to decide
-      // which dashboard should be displayed.
-      //
-      // buyer  -> Buyer Dashboard
-      // seller -> Seller Dashboard
       // ======================================
 
       localStorage.setItem("loginType", loginType);
@@ -169,27 +218,10 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
       // ======================================
       // SAVE CURRENT EMAIL
       // ======================================
-      //
-      // Save the email for both Buyer and
-      // Seller login.
-      //
-      // This supports:
-      //
-      // Buyer Login
-      //      ↓
-      // Buyer Dashboard
-      //      ↓
-      // Become A Seller
-      //      ↓
-      // Seller Verification
-      //      ↓
-      // Login as Seller
-      //      ↓
-      // Same email appears automatically
-      //
-      // IMPORTANT:
-      // Password is NEVER stored.
-      // ======================================
+
+      /*
+       * Password is NEVER stored.
+       */
 
       localStorage.setItem("sellerEmail", email.trim());
 

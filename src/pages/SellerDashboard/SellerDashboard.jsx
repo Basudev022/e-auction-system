@@ -1,13 +1,19 @@
 import { useState } from "react";
 
+import Header from "../../components/Header/Header";
 import CreateAuction from "../../components/SellerDashboard/CreateAuction";
 import SellerDashboardOverview from "../../components/SellerDashboard/SellerDashboardOverview";
 import SellerDashboardSidebar from "../../components/SellerDashboard/SellerDashboardSidebar";
-import SellerHeader from "../../components/SellerDashboard/SellerHeader";
 
 import "./SellerDashboard.css";
 
-export default function SellerDashboard({ onLogout }) {
+export default function SellerDashboard({
+  onLogout,
+  onDashboard,
+  onHome,
+  onViewAllAuctions,
+  onHowItWorks,
+}) {
   const [activePage, setActivePage] = useState("overview");
 
   const handlePageChange = (page) => {
@@ -27,7 +33,17 @@ export default function SellerDashboard({ onLogout }) {
 
   return (
     <div className="seller-dashboard">
-      <SellerHeader onLogout={onLogout} />
+      <Header
+        onLogout={onLogout}
+        onDashboard={onDashboard}
+        onHome={onHome}
+        onViewAllAuctions={onViewAllAuctions}
+        onHowItWorks={onHowItWorks}
+        dashboardMode
+        sellerDashboardMode
+        isLoggedIn
+        activeLink=""
+      />
 
       <div className="seller-dashboard-layout">
         <SellerDashboardSidebar

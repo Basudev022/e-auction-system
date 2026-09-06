@@ -90,6 +90,7 @@ function DashboardSidebar({ onLogout, onBecomeSeller }) {
         <p>We're here to help you with anything you need.</p>
 
         <button type="button">
+          <Icon name="phone" size={15} />
           <span>Contact Support</span>
         </button>
       </div>

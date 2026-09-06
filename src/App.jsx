@@ -196,7 +196,15 @@ export default function App() {
   // ==========================================
 
   if (currentPage === "seller-dashboard") {
-    return <SellerDashboard onLogout={handleLogout} />;
+    return (
+      <SellerDashboard
+        onLogout={handleLogout}
+        onDashboard={handleDashboard}
+        onHome={handleHome}
+        onViewAllAuctions={handleViewAllAuctions}
+        onHowItWorks={handleHowItWorks}
+      />
+    );
   }
 
   // ==========================================
