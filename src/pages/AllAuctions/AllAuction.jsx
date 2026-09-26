@@ -241,6 +241,7 @@ export default function AllAuction({
   onDashboard,
   onHome,
   onViewAllAuctions,
+  onProductDetails,
   onHowItWorks,
   activeNav,
   onActiveLinkChange,
@@ -493,6 +494,7 @@ export default function AllAuction({
                       seller={auction.seller}
                       category={auction.category}
                       timeLeft={auction.timeLeft}
+                      onProductClick={onProductDetails}
                     />
                   ))}
                 </div>

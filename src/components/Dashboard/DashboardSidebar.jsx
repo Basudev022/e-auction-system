@@ -2,7 +2,17 @@ import { useEffect, useState } from "react";
 
 import Icon from "../Icon/Icon";
 
-function DashboardSidebar({ onLogout, onBecomeSeller }) {
+function DashboardSidebar({
+  onLogout,
+  onBecomeSeller,
+  activeSection = "overview",
+  onOverview,
+  onOrders,
+  onWatchlist,
+  onMessages,
+  onAddress,
+  onPaymentMethods,
+}) {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -41,17 +51,32 @@ function DashboardSidebar({ onLogout, onBecomeSeller }) {
 
       {/* SIDEBAR NAVIGATION */}
       <nav className="sidebar-nav">
-        <button className="nav-item active" type="button">
+        <button
+          className={`nav-item ${activeSection === "overview" ? "active" : ""}`}
+          type="button"
+          onClick={onOverview}
+        >
           <Icon name="home" size={18} />
           <span>Overview</span>
         </button>
 
-        <button className="nav-item" type="button">
+        <button
+          className={`nav-item ${activeSection === "orders" ? "active" : ""}`}
+          type="button"
+          onClick={onOrders}
+        >
           <Icon name="gavel" size={18} />
-          <span>My Bids</span>
+          <span>My Orders</span>
         </button>
 
-        <button className="nav-item" type="button">
+        {/* WATCHLIST */}
+        <button
+          className={`nav-item ${
+            activeSection === "watchlist" ? "active" : ""
+          }`}
+          type="button"
+          onClick={onWatchlist}
+        >
           <Icon name="heart" size={18} />
           <span>Watchlist</span>
         </button>
@@ -66,18 +91,35 @@ function DashboardSidebar({ onLogout, onBecomeSeller }) {
           <span>Become A Seller</span>
         </button>
 
-        <button className="nav-item" type="button">
+        {/* MESSAGES */}
+        <button
+          className={`nav-item ${activeSection === "messages" ? "active" : ""}`}
+          type="button"
+          onClick={onMessages}
+        >
           <Icon name="mail" size={18} />
           <span>Messages</span>
           <span className="message-count">2</span>
         </button>
 
-        <button className="nav-item" type="button">
+        {/* MY ADDRESS */}
+        <button
+          className={`nav-item ${activeSection === "address" ? "active" : ""}`}
+          type="button"
+          onClick={onAddress}
+        >
           <Icon name="home" size={18} />
           <span>My Address</span>
         </button>
 
-        <button className="nav-item" type="button">
+        {/* PAYMENT METHODS */}
+        <button
+          className={`nav-item ${
+            activeSection === "payment-methods" ? "active" : ""
+          }`}
+          type="button"
+          onClick={onPaymentMethods}
+        >
           <Icon name="creditCard" size={18} />
           <span>Payment Methods</span>
         </button>

@@ -5,6 +5,9 @@ import ActiveBids from "../../components/Dashboard/ActiveBids";
 import DashboardSidebar from "../../components/Dashboard/DashboardSidebar";
 import DashboardStats from "../../components/Dashboard/DashboardStats";
 import Messages from "../../components/Dashboard/Messages";
+import MyAddress from "../../components/Dashboard/MyAddress";
+import MyOrders from "../../components/Dashboard/MyOrders";
+import PaymentMethods from "../../components/Dashboard/PaymentMethods";
 import RecentActivity from "../../components/Dashboard/RecentActivity";
 import Watchlist from "../../components/Dashboard/Watchlist";
 import WonAuctions from "../../components/Dashboard/WonAuctions";
@@ -22,11 +25,14 @@ function Dashboard({
   onDashboard,
   onHome,
   onViewAllAuctions,
+  onProductDetails,
   onHowItWorks,
   activeLink = "",
   onActiveLinkChange,
 }) {
   const [showSellerModal, setShowSellerModal] = useState(false);
+
+  const [activeSection, setActiveSection] = useState("overview");
 
   const handleBecomeSeller = () => {
     setShowSellerModal(true);
@@ -42,6 +48,30 @@ function Dashboard({
     if (onSellerVerified) {
       onSellerVerified();
     }
+  };
+
+  const handleOverview = () => {
+    setActiveSection("overview");
+  };
+
+  const handleOrders = () => {
+    setActiveSection("orders");
+  };
+
+  const handleWatchlist = () => {
+    setActiveSection("watchlist");
+  };
+
+  const handleMessages = () => {
+    setActiveSection("messages");
+  };
+
+  const handleAddress = () => {
+    setActiveSection("address");
+  };
+
+  const handlePaymentMethods = () => {
+    setActiveSection("payment-methods");
   };
 
   return (
@@ -66,29 +96,52 @@ function Dashboard({
         <DashboardSidebar
           onLogout={onLogout}
           onBecomeSeller={handleBecomeSeller}
+          activeSection={activeSection}
+          onOverview={handleOverview}
+          onOrders={handleOrders}
+          onWatchlist={handleWatchlist}
+          onMessages={handleMessages}
+          onAddress={handleAddress}
+          onPaymentMethods={handlePaymentMethods}
         />
 
         <main className="dashboard-main">
-          <section className="account-summary-row">
-            <AccountSummary />
-          </section>
+          {activeSection === "orders" ? (
+            <MyOrders />
+          ) : activeSection === "watchlist" ? (
+            <Watchlist mode="full" onProductDetails={onProductDetails} />
+          ) : activeSection === "messages" ? (
+            <Messages mode="full" />
+          ) : activeSection === "address" ? (
+            <MyAddress />
+          ) : activeSection === "payment-methods" ? (
+            <PaymentMethods />
+          ) : (
+            <>
+              <section className="account-summary-row">
+                <AccountSummary />
+              </section>
 
-          <DashboardStats />
+              <DashboardStats />
 
-          <section className="dashboard-columns active-bids-row">
-            <ActiveBids />
-            <Watchlist />
-          </section>
+              <section className="dashboard-columns active-bids-row">
+                <ActiveBids />
+                <RecentActivity />
+              </section>
 
-          <section className="dashboard-columns bottom-three-row">
-            <WonAuctions />
-            <RecentActivity />
-            <Messages />
-          </section>
+              <section className="dashboard-columns bottom-three-row">
+                <WonAuctions />
+                <Messages mode="overview" />
+                <div></div>
+              </section>
 
-          <footer className="dashboard-footer">
-            <p className="copyright">© 2026 eAuction. All rights reserved.</p>
-          </footer>
+              <footer className="dashboard-footer">
+                <p className="copyright">
+                  © 2026 eAuction. All rights reserved.
+                </p>
+              </footer>
+            </>
+          )}
         </main>
       </div>
 

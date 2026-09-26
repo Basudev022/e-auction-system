@@ -5,6 +5,7 @@ import AllAuction from "./pages/AllAuctions/AllAuction";
 import AuthPage from "./pages/Auth/AuthPage";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Home from "./pages/Home/Home";
+import ProductDetails from "./pages/ProductDetails/ProductDetails";
 import SellerDashboard from "./pages/SellerDashboard/SellerDashboard";
 
 import { logout } from "./redux/slices/authSlice";
@@ -25,6 +26,8 @@ export default function App() {
   // ==========================================
 
   const [currentPage, setCurrentPage] = useState("home");
+
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const [isSeller, setIsSeller] = useState(
     localStorage.getItem("isSeller") === "true",
@@ -59,9 +62,6 @@ export default function App() {
   const handleLoginSuccess = (loginType) => {
     setShowAuth(false);
 
-    // Save the login type so the application can
-    // remember whether the logged-in user is a
-    // buyer or seller.
     localStorage.setItem("loginType", loginType);
 
     // ==========================================
@@ -112,6 +112,7 @@ export default function App() {
     setIsSeller(false);
 
     setCurrentPage("home");
+    setSelectedProduct(null);
     setActiveNav("Home");
     setShowAuth(false);
   };
@@ -123,6 +124,21 @@ export default function App() {
   const handleViewAllAuctions = () => {
     setActiveNav("Auctions");
     setCurrentPage("all-auctions");
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  // ==========================================
+  // PRODUCT DETAILS
+  // ==========================================
+
+  const handleProductDetails = (product) => {
+    setSelectedProduct(product);
+    setCurrentPage("product-details");
+    setActiveNav("");
 
     window.scrollTo({
       top: 0,
@@ -149,8 +165,6 @@ export default function App() {
   // ==========================================
 
   const handleDashboard = () => {
-    // Dashboard is not one of the main navigation links.
-    // Therefore no navigation link should be underlined.
     setActiveNav("");
 
     setCurrentPage("dashboard");
@@ -230,6 +244,29 @@ export default function App() {
   }
 
   // ==========================================
+  // PRODUCT DETAILS
+  // ==========================================
+
+  if (currentPage === "product-details") {
+    return (
+      <ProductDetails
+        product={selectedProduct}
+        onLogin={handleOpenAuth}
+        onLogout={handleLogout}
+        isLoggedIn={isAuthenticated}
+        user={user}
+        onDashboard={handleDashboard}
+        onViewAllAuctions={handleViewAllAuctions}
+        onProductDetails={handleProductDetails}
+        onHome={handleHome}
+        onHowItWorks={handleHowItWorks}
+        activeNav={activeNav}
+        onActiveLinkChange={handleActiveNavChange}
+      />
+    );
+  }
+
+  // ==========================================
   // NORMAL WEBSITE PAGES
   // ==========================================
 
@@ -247,6 +284,7 @@ export default function App() {
           user={user}
           onDashboard={handleDashboard}
           onViewAllAuctions={handleViewAllAuctions}
+          onProductDetails={handleProductDetails}
           onHome={handleHome}
           onHowItWorks={handleHowItWorks}
           activeNav={activeNav}
@@ -267,6 +305,7 @@ export default function App() {
           onDashboard={handleDashboard}
           onHome={handleHome}
           onViewAllAuctions={handleViewAllAuctions}
+          onProductDetails={handleProductDetails}
           onHowItWorks={handleHowItWorks}
           activeNav={activeNav}
           onActiveLinkChange={handleActiveNavChange}

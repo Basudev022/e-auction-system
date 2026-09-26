@@ -1,19 +1,17 @@
-/* ========================================================= 
-   TRENDING AUCTIONS 
+/* =========================================================  
+   EXPLORE AUCTIONS  
 ========================================================= */
 
-.upcoming-section {
+.explore-section {
   width: 100%;
   min-width: 0;
-
-  margin-top: 30px;
 }
 
-/* ========================================================= 
-   HEADING 
+/* =========================================================  
+   HEADING  
 ========================================================= */
 
-.auction-heading {
+.explore-heading {
   width: 100%;
 
   display: flex;
@@ -23,13 +21,13 @@
   margin-bottom: 16px;
 }
 
-.auction-heading-text {
+.explore-heading-text {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-.auction-heading h2 {
+.explore-heading h2 {
   margin: 0;
 
   color: #161616;
@@ -44,7 +42,7 @@
   flex-shrink: 0;
 }
 
-.auction-heading h3 {
+.explore-heading h3 {
   margin: 4px 0 0;
 
   color: #030303;
@@ -57,11 +55,11 @@
   white-space: nowrap;
 }
 
-/* ========================================================= 
-   VIEW ALL AUCTIONS 
+/* =========================================================  
+   VIEW ALL AUCTIONS  
 ========================================================= */
 
-.auction-view-all {
+.explore-view-all {
   padding: 0;
   margin-top: 35px;
 
@@ -84,24 +82,24 @@
     transform 0.2s ease;
 }
 
-.auction-view-all:hover {
+.explore-view-all:hover {
   color: #064b2e;
 
   transform: translateX(2px);
 }
 
-.auction-view-all:hover::after {
+.explore-view-all:hover::after {
   content: " >";
 
   margin-left: 3px;
 }
 
-/* ========================================================= 
-   AUCTION GRID 
-   SIX CARDS ON DESKTOP 
+/* =========================================================  
+   AUCTION GRID  
+   SIX CARDS ON DESKTOP  
 ========================================================= */
 
-.upcoming-grid {
+.explore-grid {
   width: 100%;
 
   display: grid;
@@ -112,12 +110,12 @@
   row-gap: 10px;
 }
 
-/* ========================================================= 
-   TABLET 
+/* =========================================================  
+   TABLET  
 ========================================================= */
 
 @media (max-width: 900px) {
-  .upcoming-grid {
+  .explore-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 
     column-gap: 12px;
@@ -125,33 +123,33 @@
   }
 }
 
-/* ========================================================= 
-   MOBILE 
+/* =========================================================  
+   MOBILE  
 ========================================================= */
 
 @media (max-width: 600px) {
-  .upcoming-grid {
+  .explore-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 
     column-gap: 12px;
     row-gap: 16px;
   }
 
-  .auction-heading h2 {
+  .explore-heading h2 {
     white-space: nowrap;
   }
 }
 
-/* ========================================================= 
-   SMALL MOBILE 
+/* =========================================================  
+   SMALL MOBILE  
 ========================================================= */
 
 @media (max-width: 420px) {
-  .upcoming-grid {
+  .explore-grid {
     grid-template-columns: 1fr;
   }
 
-  .auction-heading h2 {
+  .explore-heading h2 {
     white-space: nowrap;
 
     font-size: 15px;

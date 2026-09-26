@@ -485,7 +485,8 @@
 .auction-list .auction-card-content .auction-category {
   position: static;
 
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
 
   margin: 0 0 5px;
 

@@ -5,9 +5,9 @@ import watch from "../../assets/images/watch.png";
 
 import AuctionCard from "../AuctionCard/AuctionCard";
 
-import "./TrendingAuctions.css";
+import "./ExploreAuctions.css";
 
-export default function TrendingAuctions({
+export default function ExploreAuctions({
   onViewAllAuctions,
   onProductDetails,
 }) {
@@ -94,37 +94,35 @@ export default function TrendingAuctions({
   ];
 
   /* =========================================================
-     ONLY FIRST 6 CARDS APPEAR ON HOME PAGE
+     FIRST 6 CARDS APPEAR IN THIS SECTION
   ========================================================= */
 
-  const homeAuctions = auctions.slice(0, 6);
+  const trendingAuctions = auctions.slice(0, 6);
 
   return (
-    <section className="upcoming-section">
+    <section className="explore-section">
       {/* HEADING */}
 
-      <div className="auction-heading">
-        <div className="auction-heading-text">
-          <h2>Auctions For You</h2>
+      <div className="explore-heading">
+        <div className="explore-heading-text">
+          <h2>Explore More</h2>
 
-          <h3>
-            Discover the latest and greatest auctions tailored just for you.
-          </h3>
+          <h3>Explore trending auctions and discover items you might love.</h3>
         </div>
 
         <button
           type="button"
-          className="auction-view-all"
+          className="explore-view-all"
           onClick={onViewAllAuctions}
         >
-          View All Auctions
+          Explore More
         </button>
       </div>
 
-      {/* SIX AUCTION CARDS */}
+      {/* TRENDING AUCTIONS */}
 
-      <div className="upcoming-grid">
-        {homeAuctions.map((auction, index) => (
+      <div className="explore-grid">
+        {trendingAuctions.map((auction, index) => (
           <AuctionCard
             key={`${auction.title}-${index}`}
             image={auction.image}

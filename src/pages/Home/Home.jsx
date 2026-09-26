@@ -1,7 +1,8 @@
 import Footer from "../../components/FooterBanner/FooterBanner";
 import Header from "../../components/Header/Header";
 import Hero from "../../components/Hero/Hero";
-import HowItWorks from "../../components/HowItWorks/HowItWorks";
+// import HowItWorks from "../../components/HowItWorks/HowItWorks";
+import ExploreAuctions from "../../components/ExploreAuctions/ExploreAuctions";
 import TrendingAuctions from "../../components/TrendingAuctions/TrendingAuctions";
 import TrustBar from "../../components/TrustBar/TrustBar";
 
@@ -14,6 +15,7 @@ export default function Home({
   user,
   onDashboard,
   onViewAllAuctions,
+  onProductDetails,
   onHome,
   onHowItWorks,
   activeNav,
@@ -35,19 +37,29 @@ export default function Home({
       />
 
       <main>
-        <Hero />
-
         <div className="auction-content">
           <div className="auction-left">
-            <TrendingAuctions onViewAllAuctions={onViewAllAuctions} />
+            <TrendingAuctions
+              onViewAllAuctions={onViewAllAuctions}
+              onProductDetails={onProductDetails}
+            />
+          </div>
+        </div>
+
+        <Hero />
+
+        <div className="auction-content-explore">
+          <div className="auction-left-explore">
+            <ExploreAuctions
+              onViewAllAuctions={onViewAllAuctions}
+              onProductDetails={onProductDetails}
+            />
           </div>
         </div>
 
         <TrustBar />
 
-        <section id="how-it-works">
-          <HowItWorks />
-        </section>
+        {/* <section id="how-it-works"><HowItWorks /></section> */}
       </main>
 
       <Footer />
