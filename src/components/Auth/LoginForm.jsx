@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 
-import { loginUser } from "../../api/auth/authApi";
+import { adminLogin, loginUser } from "../../api/auth/authApi";
 
 import {
   clearAuthError,
@@ -11,6 +11,23 @@ import {
   loginStart,
   loginSuccess,
 } from "../../redux/slices/authSlice";
+
+// =====================================================
+// ROLE HELPER
+// =====================================================
+
+const normalizeRole = (role) => {
+  if (!role) return "";
+
+  return String(role)
+    .trim()
+    .toUpperCase()
+    .replace(/^ROLE_/, "");
+};
+
+// =====================================================
+// MAIN LOGIN FORM
+// =====================================================
 
 export default function LoginForm({ setActiveTab, onLoginSuccess }) {
   const dispatch = useDispatch();
@@ -26,9 +43,12 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
 
   // ==========================================
   // LOGIN TYPE
+  // null = Admin login
+  // buyer = Buyer login
+  // seller = Seller login
   // ==========================================
 
-  const [loginType, setLoginType] = useState("buyer");
+  const [loginType, setLoginType] = useState(null);
 
   // ==========================================
   // PREFILL REGISTERED EMAIL
@@ -42,14 +62,6 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
 
   // ==========================================
   // PREFILL SELLER EMAIL
-  // ==========================================
-
-  //
-  // When the user selects "Login as Seller",
-  // use the email saved during the previous
-  // Buyer login / seller verification flow.
-  //
-  // Password is NEVER stored in localStorage.
   // ==========================================
 
   useEffect(() => {
@@ -87,12 +99,7 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
       setEmail("");
     }
 
-    /*
-     * Always clear the password when changing
-     * between Buyer and Seller login.
-     *
-     * Password is never stored anywhere.
-     */
+    // Clear password when changing login type
     setPassword("");
   };
 
@@ -129,12 +136,39 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
       };
 
       console.log("========== LOGIN REQUEST ==========");
-      console.log("Login Type:", loginType);
+      console.log("Login Type:", loginType ?? "admin");
       console.log("Email:", loginData.email);
       console.log("===================================");
 
       // ======================================
-      // CALL SPRING BOOT LOGIN API
+      // ADMIN LOGIN
+      // No Buyer/Seller radio selected
+      // ======================================
+
+      if (loginType === null) {
+        const response = await adminLogin(loginData);
+
+        // ====================================
+        // ADMIN LOGIN SUCCESS
+        // ====================================
+
+        dispatch(loginSuccess(response));
+
+        localStorage.setItem("loginType", "admin");
+
+        // ====================================
+        // REDIRECT TO ADMIN DASHBOARD
+        // ====================================
+
+        if (onLoginSuccess) {
+          onLoginSuccess("admin");
+        }
+
+        return;
+      }
+
+      // ======================================
+      // BUYER / SELLER LOGIN
       // ======================================
 
       const response = await loginUser(loginData);
@@ -143,7 +177,14 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
       // GET USER ROLE FROM BACKEND
       // ======================================
 
-      const backendRole = String(response?.userRole || "").toUpperCase();
+      const backendRole = normalizeRole(
+        response?.userRole ??
+          response?.user?.userRole ??
+          response?.role ??
+          response?.user?.role ??
+          response?.userType ??
+          response?.user?.userType,
+      );
 
       // ======================================
       // CONVERT SELECTED RADIO TO ROLE
@@ -167,8 +208,8 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
        * Both BUYER and SELLER accounts can
        * log in using "Login as Buyer".
        *
-       * BUYER  -> Buyer Dashboard  ✅
-       * SELLER -> Buyer Dashboard  ✅
+       * BUYER  -> Buyer Dashboard
+       * SELLER -> Buyer Dashboard
        */
 
       if (selectedRole === "BUYER") {
@@ -186,8 +227,8 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
        * Only a SELLER account can use
        * "Login as Seller".
        *
-       * SELLER -> Seller Dashboard  ✅
-       * BUYER  -> Seller Dashboard  ❌
+       * SELLER -> Seller Dashboard
+       * BUYER  -> Rejected
        */
 
       if (selectedRole === "SELLER") {
@@ -201,12 +242,6 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
       // LOGIN SUCCESS
       // ======================================
 
-      /*
-       * JWT + user information are stored
-       * only after the role/access check
-       * succeeds.
-       */
-
       dispatch(loginSuccess(response));
 
       // ======================================
@@ -219,17 +254,27 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
       // SAVE CURRENT EMAIL
       // ======================================
 
-      /*
-       * Password is NEVER stored.
-       */
-
       localStorage.setItem("sellerEmail", email.trim());
+
+      // ======================================
+      // CONGRATULATIONS POPUP
+      // WHEN A SELLER LOGS IN AS BUYER
+      // ======================================
+
+      if (selectedRole === "BUYER" && backendRole === "SELLER") {
+        window.alert(
+          "Congratulations! Your account has been approved as a Seller. You can now access both Buyer and Seller dashboards.",
+        );
+      }
 
       // ======================================
       // TELL AUTH PAGE / APP LOGIN SUCCEEDED
       // ======================================
 
       if (onLoginSuccess) {
+        // Preserve the selected login dashboard.
+        // Buyer login opens Buyer Dashboard,
+        // even when the backend role is SELLER.
         onLoginSuccess(loginType);
       }
     } catch (error) {
@@ -336,7 +381,6 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
 
       <div className="form-title">
         <h1>Sign in to your account</h1>
-
         <p>Enter your details to continue</p>
       </div>
 
@@ -445,7 +489,6 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
         <div className="login-options">
           <label className="remember">
             <input type="checkbox" disabled={isLoading} />
-
             <span>Remember me</span>
           </label>
 
@@ -468,9 +511,7 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
 
         <div className="divider">
           <span />
-
           <p>or continue with</p>
-
           <span />
         </div>
 
@@ -488,7 +529,6 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
             disabled={isLoading}
           >
             <span className="google-logo">G</span>
-
             <span>Continue with Google</span>
           </button>
 
@@ -501,7 +541,6 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
             disabled={isLoading}
           >
             <span className="facebook-logo">f</span>
-
             <span>Continue with Facebook</span>
           </button>
         </div>

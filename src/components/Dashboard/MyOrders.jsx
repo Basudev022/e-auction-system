@@ -1,124 +1,144 @@
+import { useCallback, useEffect, useState } from "react";
 import "./MyOrders.css";
 
-const orders = [
-  {
-    id: "ORD00123",
-    date: "5 Sept, 2026",
-    product: "Rolex Submariner Date",
-    image:
-      "https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=500&q=80",
-    seller: "Luxury Watches",
-    quantity: 1,
-    price: "₹8,50,000",
-    status: "Delivered",
-    statusClass: "delivered",
-    paymentMethod: "Online Payment",
-    shippingName: "Yash Kumar",
-    shippingAddress: "123, Green Park Lane",
-    shippingCity: "Bhubaneswar, Odisha - 751001",
-    phone: "+91 98765 43210",
-    deliveredDate: "10 Sept, 2026 at 11:45 AM",
+import { getMyOrders } from "../../api/order/orderApi";
+import { getPaymentByOrderId } from "../../api/payment/paymentApi";
+
+const getValue = (value) => {
+  if (value === null || value === undefined || value === "") {
+    return "---";
+  }
+
+  return value;
+};
+
+const formatDate = (value) => {
+  if (!value) return "---";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "---";
+
+  return date.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const formatDateTime = (value) => {
+  if (!value) return "---";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "---";
+
+  return date.toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const formatCurrency = (value) => {
+  if (
+    value === null ||
+    value === undefined ||
+    value === "" ||
+    Number.isNaN(Number(value))
+  ) {
+    return "---";
+  }
+
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 2,
+  }).format(Number(value));
+};
+
+const formatStatus = (status) => {
+  if (!status) return "---";
+
+  const statusMap = {
+    CREATED: "Order Generated",
+    PROCESSING: "Processing",
+    SHIPPED: "Shipped",
+    DELIVERED: "Delivered",
+    CANCELLED: "Cancelled",
+  };
+
+  return (
+    statusMap[String(status).toUpperCase()] ||
+    String(status)
+      .replace(/_/g, " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase())
+  );
+};
+
+const getStatusClass = (status) => {
+  const statusMap = {
+    CREATED: "generated",
+    PROCESSING: "processing",
+    SHIPPED: "shipped",
+    DELIVERED: "delivered",
+    CANCELLED: "cancelled",
+  };
+
+  return statusMap[String(status || "").toUpperCase()] || "generated";
+};
+
+const normalizeOrder = (order, payment) => {
+  const status = String(order?.orderStatus || "").toUpperCase();
+
+  return {
+    id: getValue(order?.orderId),
+    auctionId: getValue(order?.auctionId),
+    date: formatDate(order?.orderDate),
+    product: getValue(order?.auctionTitle),
+    image: "",
+    seller: "---",
+    quantity: "---",
+    price: formatCurrency(order?.winningAmount),
+    status: formatStatus(status),
+    statusClass: getStatusClass(status),
+    paymentMethod: getValue(payment?.method),
+    paymentStatus: formatStatus(payment?.paymentStatus),
+    transactionId: getValue(payment?.transactionId),
+    paymentDate: formatDateTime(payment?.paymentDate),
+    paymentAmount: formatCurrency(payment?.totalAmount),
+    shippingName: getValue(order?.winnerName),
+    shippingAddress: getValue(order?.shippingAddress),
+    shippingCity: "---",
+    phone: "---",
+    deliveredDate: "---",
+    expectedDate: "---",
 
     timeline: {
-      generated: "5 Sept",
-      processing: "6 Sept",
-      shipped: "7 Sept",
-      delivered: "10 Sept",
+      generated: formatDate(order?.orderDate),
+      processing: "---",
+      shipped: "---",
+      delivered: "---",
     },
-  },
-
-  {
-    id: "ORD00122",
-    date: "2 Sept, 2026",
-    product: "2022 Tesla Model 3",
-    image:
-      "https://images.unsplash.com/photo-1560958089-b8a1929cea89?auto=format&fit=crop&w=500&q=80",
-    seller: "Premium Motors",
-    quantity: 1,
-    price: "₹24,45,000",
-    status: "Processing",
-    statusClass: "processing",
-    paymentMethod: "Online Payment",
-    shippingName: "Yash Kumar",
-    shippingAddress: "123, Green Park Lane",
-    shippingCity: "Bhubaneswar, Odisha - 751001",
-    phone: "+91 98765 43210",
-    expectedDate: "15 Sept, 2026",
-
-    timeline: {
-      generated: "2 Sept",
-      processing: "5 Sept",
-      shipped: "",
-      delivered: "",
-    },
-  },
-
-  {
-    id: "ORD00121",
-    date: "28 Aug, 2026",
-    product: "Diamond Necklace",
-    image:
-      "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=500&q=80",
-    seller: "Royal Jewellers",
-    quantity: 1,
-    price: "₹3,25,000",
-    status: "Shipped",
-    statusClass: "shipped",
-    paymentMethod: "Online Payment",
-    shippingName: "Yash Kumar",
-    shippingAddress: "123, Green Park Lane",
-    shippingCity: "Bhubaneswar, Odisha - 751001",
-    phone: "+91 98765 43210",
-    expectedDate: "13 Sept, 2026",
-
-    timeline: {
-      generated: "28 Aug",
-      processing: "29 Aug",
-      shipped: "1 Sept",
-      delivered: "",
-    },
-  },
-
-  {
-    id: "ORD00120",
-    date: "25 Aug, 2026",
-    product: "Canon EOS R5 Camera",
-    image:
-      "https://images.unsplash.com/photo-1606986628253-9f4f4e6f0d5c?auto=format&fit=crop&w=500&q=80",
-    seller: "Camera World",
-    quantity: 1,
-    price: "₹1,25,000",
-    status: "Order Generated",
-    statusClass: "generated",
-    paymentMethod: "Online Payment",
-    shippingName: "Yash Kumar",
-    shippingAddress: "123, Green Park Lane",
-    shippingCity: "Bhubaneswar, Odisha - 751001",
-    phone: "+91 98765 43210",
-    expectedDate: "12 Sept, 2026",
-
-    timeline: {
-      generated: "25 Aug",
-      processing: "",
-      shipped: "",
-      delivered: "",
-    },
-  },
-];
+  };
+};
 
 function getTimelineSteps(order) {
   const status = order.status;
 
-  const isGenerated =
-    status === "Order Generated" ||
-    status === "Processing" ||
-    status === "Shipped" ||
-    status === "Delivered";
+  const isGenerated = [
+    "Order Generated",
+    "Processing",
+    "Shipped",
+    "Delivered",
+  ].includes(status);
 
-  const isProcessing =
-    status === "Processing" || status === "Shipped" || status === "Delivered";
+  const isProcessing = ["Processing", "Shipped", "Delivered"].includes(status);
 
-  const isShipped = status === "Shipped" || status === "Delivered";
+  const isShipped = ["Shipped", "Delivered"].includes(status);
 
   const isDelivered = status === "Delivered";
 
@@ -192,7 +212,11 @@ function StatusTimeline({ order }) {
                 ? "Your order has been shipped."
                 : order.status === "Processing"
                   ? "Your order is being processed."
-                  : "Your order has been generated successfully."}
+                  : order.status === "Cancelled"
+                    ? "Your order has been cancelled."
+                    : order.status === "Order Generated"
+                      ? "Your order has been generated successfully."
+                      : "---"}
           </strong>
 
           <p>
@@ -202,7 +226,9 @@ function StatusTimeline({ order }) {
                 ? `Expected delivery by ${order.expectedDate}`
                 : order.status === "Processing"
                   ? `Expected delivery by ${order.expectedDate}`
-                  : `Expected delivery by ${order.expectedDate}`}
+                  : order.status === "Order Generated"
+                    ? `Expected delivery by ${order.expectedDate}`
+                    : "---"}
           </p>
         </div>
       </div>
@@ -311,6 +337,95 @@ function OrderCard({ order }) {
 }
 
 export default function MyOrders() {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const fetchOrders = useCallback(async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await getMyOrders();
+
+      const orderList = Array.isArray(response)
+        ? response
+        : Array.isArray(response?.data)
+          ? response.data
+          : [];
+
+      const ordersWithPayments = await Promise.all(
+        orderList.map(async (order) => {
+          let payment = null;
+
+          try {
+            const paymentResponse = await getPaymentByOrderId(order.orderId);
+
+            payment = paymentResponse?.data ?? paymentResponse;
+          } catch {
+            payment = null;
+          }
+
+          return normalizeOrder(order, payment);
+        }),
+      );
+
+      setOrders(ordersWithPayments);
+    } catch (err) {
+      setOrders([]);
+
+      setError(
+        err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          "Unable to load your orders. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  if (loading) {
+    return (
+      <section className="my-orders-page">
+        <div className="my-orders-header">
+          <div>
+            <h1>My Orders</h1>
+            <p>View and manage your orders from won auctions and purchases.</p>
+          </div>
+        </div>
+
+        <div className="orders-list">
+          <p>Loading your orders...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="my-orders-page">
+        <div className="my-orders-header">
+          <div>
+            <h1>My Orders</h1>
+            <p>View and manage your orders from won auctions and purchases.</p>
+          </div>
+        </div>
+
+        <div className="orders-list">
+          <p>{error}</p>
+
+          <button type="button" onClick={fetchOrders}>
+            Retry
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="my-orders-page">
       <div className="my-orders-header">
@@ -343,9 +458,11 @@ export default function MyOrders() {
       </div>
 
       <div className="orders-list">
-        {orders.map((order) => (
-          <OrderCard key={order.id} order={order} />
-        ))}
+        {orders.length === 0 ? (
+          <p>No Orders Found!!</p>
+        ) : (
+          orders.map((order) => <OrderCard key={order.id} order={order} />)
+        )}
       </div>
     </section>
   );

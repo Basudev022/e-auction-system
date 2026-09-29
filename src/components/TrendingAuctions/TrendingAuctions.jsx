@@ -1,9 +1,14 @@
-import frame from "../../assets/images/frame.png";
-import painting1 from "../../assets/images/painting1.png";
-import painting2 from "../../assets/images/painting2.png";
-import watch from "../../assets/images/watch.png";
+import { useEffect, useState } from "react";
 
 import AuctionCard from "../AuctionCard/AuctionCard";
+
+import { getAllAuctions } from "../../api/auction/auctionApi";
+import { getProductById } from "../../api/product/productApi";
+
+import {
+  combineAuctionWithProduct,
+  getUpcomingAuctions,
+} from "../../utils/auctionUtils";
 
 import "./TrendingAuctions.css";
 
@@ -11,98 +16,109 @@ export default function TrendingAuctions({
   onViewAllAuctions,
   onProductDetails,
 }) {
-  const auctions = [
-    {
-      image: watch,
-      title: "Vintage Watch 1960",
-      seller: "David Samson",
-      category: "Watches",
-      timeLeft: "2h 15m",
-    },
-
-    {
-      image: painting2,
-      title: "Classic Oil Painting",
-      seller: "Michael Anderson",
-      category: "Art",
-      timeLeft: "3h 20m",
-    },
-
-    {
-      image: frame,
-      title: "Antique Frame",
-      seller: "Robert Wilson",
-      category: "Antiques",
-      timeLeft: "4h 10m",
-    },
-
-    {
-      image: painting1,
-      title: "Modern Art Painting",
-      seller: "Emma Thompson",
-      category: "Art",
-      timeLeft: "5h 30m",
-    },
-
-    {
-      image: watch,
-      title: "Luxury Vintage Watch",
-      seller: "James Miller",
-      category: "Watches",
-      timeLeft: "6h 15m",
-    },
-
-    {
-      image: frame,
-      title: "Decorative Antique Frame",
-      seller: "David Samson",
-      category: "Antiques",
-      timeLeft: "7h 05m",
-    },
-
-    {
-      image: watch,
-      title: "Classic Gold Watch",
-      seller: "Daniel Brown",
-      category: "Watches",
-      timeLeft: "8h 10m",
-    },
-
-    {
-      image: painting1,
-      title: "Contemporary Painting",
-      seller: "Sophia Taylor",
-      category: "Art",
-      timeLeft: "9h 25m",
-    },
-
-    {
-      image: painting2,
-      title: "Traditional Oil Artwork",
-      seller: "William Davis",
-      category: "Art",
-      timeLeft: "10h 15m",
-    },
-
-    {
-      image: frame,
-      title: "Rare Wooden Frame",
-      seller: "David Samson",
-      category: "Antiques",
-      timeLeft: "11h 20m",
-    },
-  ];
+  const [auctions, setAuctions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [now, setNow] = useState(() => Date.now());
 
   /* =========================================================
-     ONLY FIRST 6 CARDS APPEAR ON HOME PAGE
+     REAL-TIME CLOCK
   ========================================================= */
 
-  const homeAuctions = auctions.slice(0, 6);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  /* =========================================================
+     FETCH ALL AUCTIONS AND PRODUCT DETAILS
+  ========================================================= */
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchAuctions = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const allAuctions = await getAllAuctions();
+
+        const auctionList = Array.isArray(allAuctions) ? allAuctions : [];
+
+        const auctionsWithProducts = await Promise.all(
+          auctionList.map(async (auction) => {
+            try {
+              const product = await getProductById(auction.productId);
+
+              return combineAuctionWithProduct(auction, product);
+            } catch (productError) {
+              console.error(
+                `Failed to fetch product ${auction.productId}:`,
+                productError,
+              );
+
+              return null;
+            }
+          }),
+        );
+
+        if (isMounted) {
+          setAuctions(auctionsWithProducts.filter(Boolean));
+        }
+      } catch (fetchError) {
+        console.error("Failed to fetch trending auctions:", fetchError);
+
+        if (isMounted) {
+          setError("Unable to load auctions. Please try again.");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchAuctions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  /* =========================================================
+     UPCOMING AUCTIONS
+  ========================================================= */
+
+  const upcomingAuctions = getUpcomingAuctions(auctions, now).slice(0, 6);
+
+  /* =========================================================
+     OPEN PRODUCT DETAILS
+  ========================================================= */
+
+  const handleProductClick = (auction) => {
+    if (typeof onProductDetails !== "function") {
+      console.error("Product Details navigation handler is missing.");
+      return;
+    }
+
+    onProductDetails({
+      ...auction.product,
+      ...auction,
+      productId: auction.productId,
+      auctionId: auction.auctionId,
+    });
+  };
+
+  /* =========================================================
+     RETURN
+  ========================================================= */
 
   return (
     <section className="upcoming-section">
-      {/* HEADING */}
-
       <div className="auction-heading">
         <div className="auction-heading-text">
           <h2>Auctions For You</h2>
@@ -121,21 +137,49 @@ export default function TrendingAuctions({
         </button>
       </div>
 
-      {/* SIX AUCTION CARDS */}
+      {loading ? (
+        <div className="no-auctions">
+          <h3>Loading auctions...</h3>
+          <p>Please wait while we fetch the latest auctions.</p>
+        </div>
+      ) : error ? (
+        <div className="no-auctions">
+          <h3>Unable to load auctions</h3>
+          <p>{error}</p>
+        </div>
+      ) : upcomingAuctions.length > 0 ? (
+        <div className="upcoming-grid">
+          {upcomingAuctions.map((auction) => (
+            <AuctionCard
+              key={auction.auctionId}
+              auctionId={auction.auctionId}
+              productId={auction.productId}
+              image={auction.image}
+              title={auction.title}
+              seller={auction.seller}
+              category={auction.category}
+              description={auction.description}
+              basePrice={auction.basePrice}
+              currHighestBid={auction.currHighestBid}
+              startTime={auction.startTime}
+              endTime={auction.endTime}
+              auctionStatus="SCHEDULED"
+              product={auction.product}
+              verified={auction.verified}
+              onProductClick={() => handleProductClick(auction)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="no-auctions">
+          <h3>No scheduled auctions found</h3>
+          <p>New auctions will appear here when they become available.</p>
 
-      <div className="upcoming-grid">
-        {homeAuctions.map((auction, index) => (
-          <AuctionCard
-            key={`${auction.title}-${index}`}
-            image={auction.image}
-            title={auction.title}
-            seller={auction.seller}
-            category={auction.category}
-            timeLeft={auction.timeLeft}
-            onProductClick={onProductDetails}
-          />
-        ))}
-      </div>
+          <button type="button" onClick={onViewAllAuctions}>
+            View All Auctions
+          </button>
+        </div>
+      )}
     </section>
   );
 }

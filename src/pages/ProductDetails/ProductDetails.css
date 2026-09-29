@@ -281,6 +281,25 @@
   line-height: 1.15;
 }
 
+/* =========================================================
+   AUCTION ID
+========================================================= */
+
+.product-auction-id {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.product-auction-id strong {
+  color: #006b55;
+  font-weight: 700;
+}
+
 .product-short-description {
   margin: 0;
 

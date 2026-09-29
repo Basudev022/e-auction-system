@@ -216,6 +216,8 @@
 
   pointer-events: none;
 
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
 }
 
@@ -238,6 +240,8 @@
 
   background: #fff;
 
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
 
   pointer-events: auto;
@@ -1163,4 +1167,276 @@
     height: 150px;
     flex-basis: 150px;
   }
+}
+
+/* =========================================================
+   AUCTION CARD COMPONENT OVERRIDES
+   Scoped to All Auctions so Home and Explore cards stay unchanged.
+   These selectors match the actual AuctionCard.jsx class names.
+========================================================= */
+
+.auction-list .auction-card {
+  min-height: 280px;
+}
+
+.auction-list .auction-image-wrapper {
+  width: 100%;
+  height: 125px;
+  flex: 0 0 125px;
+  overflow: hidden;
+  background: #edf3ef;
+}
+
+.auction-list .auction-image-wrapper .auction-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.auction-list .auction-wishlist {
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  z-index: 5;
+  background: rgba(30, 30, 30, 0.88);
+  color: #fff;
+  font-size: 19px;
+}
+
+.auction-list .auction-image-count {
+  right: 8px;
+  bottom: 8px;
+}
+
+.auction-list .auction-verified {
+  top: 8px;
+  left: 8px;
+}
+
+.auction-list .auction-card-content {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+  gap: 0;
+  padding: 10px 12px;
+  overflow: hidden;
+}
+
+.auction-list .auction-card-content .auction-id {
+  gap: 5px;
+  margin: 0 0 6px;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.auction-list .auction-card-content .auction-id strong {
+  min-width: 0;
+  font-size: 10px;
+}
+
+.auction-list .auction-card-content .auction-title {
+  margin: 0 0 6px;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.auction-list .auction-card-content .auction-category {
+  max-width: 100%;
+  margin: 0 0 7px;
+  padding: 3px 7px;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.auction-list .auction-card-content .auction-seller {
+  gap: 6px;
+  margin: 0;
+}
+
+.auction-list .auction-card-content .seller-avatar {
+  width: 25px;
+  height: 25px;
+  font-size: 10px;
+}
+
+.auction-list .auction-card-content .seller-label {
+  font-size: 9px;
+}
+
+.auction-list .auction-card-content .seller-name {
+  font-size: 10px;
+}
+
+.auction-list .auction-card-content .auction-bottom {
+  margin-top: auto;
+  padding-top: 7px;
+}
+
+.auction-list .auction-card-content .auction-time {
+  padding-left: 0;
+}
+
+.auction-list .auction-card-content .countdown {
+  gap: 2px;
+  margin-top: 0;
+}
+
+.auction-list .auction-card-content .countdown-box {
+  min-width: 23px;
+  padding: 3px 2px;
+}
+
+.auction-list .auction-card-content .countdown-box strong {
+  font-size: 11px;
+}
+
+.auction-list .auction-card-content .countdown-box small {
+  font-size: 7px;
+}
+
+/* Horizontal grid-view card */
+.auction-list.grid-view .auction-card {
+  height: 215px;
+  min-height: 215px;
+  grid-template-columns: 190px minmax(0, 1fr);
+}
+
+.auction-list.grid-view .auction-card .auction-image-wrapper {
+  width: 190px;
+  height: 100%;
+  min-height: 0;
+  flex: 0 0 190px;
+}
+
+.auction-list.grid-view .auction-card .auction-card-content {
+  height: 100%;
+  min-width: 0;
+  padding: 13px;
+  overflow: hidden;
+}
+
+.auction-list.grid-view .auction-card .auction-card-content .auction-id {
+  margin-bottom: 7px;
+}
+
+.auction-list.grid-view .auction-card .auction-card-content .auction-title {
+  font-size: 15px;
+}
+
+.auction-list.grid-view .auction-card .auction-card-content .auction-category {
+  margin-top: 8px;
+}
+
+.auction-list.grid-view .auction-card .auction-card-content .auction-seller {
+  margin-top: 8px;
+}
+
+.auction-list.grid-view .auction-card .auction-card-content .auction-bottom {
+  margin-top: auto;
+}
+
+/* Responsive card sizing */
+@media (max-width: 1200px) {
+  .auction-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .auction-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .auction-list.grid-view .auction-card {
+    grid-template-columns: 150px minmax(0, 1fr);
+  }
+
+  .auction-list.grid-view .auction-card .auction-image-wrapper {
+    width: 150px;
+    flex-basis: 150px;
+  }
+}
+
+@media (max-width: 600px) {
+  .auction-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .auction-list .auction-card {
+    height: 280px;
+  }
+
+  .auction-list.grid-view .auction-card {
+    grid-template-columns: 1fr;
+    grid-template-rows: 125px minmax(0, 1fr);
+    height: 300px;
+  }
+
+  .auction-list.grid-view .auction-card .auction-image-wrapper {
+    width: 100%;
+    height: 125px;
+    flex-basis: 125px;
+  }
+}
+
+@media (max-width: 420px) {
+  .auction-list {
+    grid-template-columns: 1fr;
+  }
+
+  .auction-list .auction-card {
+    height: 300px;
+  }
+
+  .auction-list .auction-image-wrapper {
+    height: 145px;
+    flex-basis: 145px;
+  }
+}
+
+/* =========================================================
+   CENTER THE TIME / COUNTDOWN INSIDE ALL AUCTION CARDS
+   Scoped to All Auctions only.
+========================================================= */
+
+.auction-list .auction-card-content .auction-time {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding-left: 0;
+}
+
+.auction-list .auction-card-content .auction-time > span,
+.auction-list .auction-card-content .auction-time > p {
+  width: 100%;
+  text-align: center;
+}
+
+.auction-list .auction-card-content .countdown {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.auction-list .auction-card-content .auction-bottom {
+  width: 100%;
+}
+
+.auction-list.grid-view .auction-card-content .auction-time {
+  align-items: center;
+  text-align: center;
+}
+
+.auction-list.grid-view .auction-card-content .countdown {
+  justify-content: center;
 }

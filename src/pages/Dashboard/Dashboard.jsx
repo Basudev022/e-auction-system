@@ -23,15 +23,17 @@ function Dashboard({
   isLoggedIn,
   user,
   onDashboard,
+  onSellerDashboard,
+  canAccessSellerDashboard = false,
   onHome,
   onViewAllAuctions,
   onProductDetails,
   onHowItWorks,
+  onLiveAuction,
   activeLink = "",
   onActiveLinkChange,
 }) {
   const [showSellerModal, setShowSellerModal] = useState(false);
-
   const [activeSection, setActiveSection] = useState("overview");
 
   const handleBecomeSeller = () => {
@@ -50,29 +52,12 @@ function Dashboard({
     }
   };
 
-  const handleOverview = () => {
-    setActiveSection("overview");
-  };
-
-  const handleOrders = () => {
-    setActiveSection("orders");
-  };
-
-  const handleWatchlist = () => {
-    setActiveSection("watchlist");
-  };
-
-  const handleMessages = () => {
-    setActiveSection("messages");
-  };
-
-  const handleAddress = () => {
-    setActiveSection("address");
-  };
-
-  const handlePaymentMethods = () => {
-    setActiveSection("payment-methods");
-  };
+  const handleOverview = () => setActiveSection("overview");
+  const handleOrders = () => setActiveSection("orders");
+  const handleWatchlist = () => setActiveSection("watchlist");
+  const handleMessages = () => setActiveSection("messages");
+  const handleAddress = () => setActiveSection("address");
+  const handlePaymentMethods = () => setActiveSection("payment-methods");
 
   return (
     <>
@@ -84,6 +69,8 @@ function Dashboard({
         isLoggedIn={isLoggedIn}
         user={user}
         onDashboard={onDashboard}
+        onSellerDashboard={onSellerDashboard}
+        canAccessSellerDashboard={canAccessSellerDashboard}
         onBecomeSeller={handleBecomeSeller}
         onHome={onHome}
         onViewAllAuctions={onViewAllAuctions}
@@ -125,7 +112,7 @@ function Dashboard({
               <DashboardStats />
 
               <section className="dashboard-columns active-bids-row">
-                <ActiveBids />
+                <ActiveBids onLiveAuction={onLiveAuction} />
                 <RecentActivity />
               </section>
 

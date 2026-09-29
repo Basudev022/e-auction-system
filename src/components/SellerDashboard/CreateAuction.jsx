@@ -1,13 +1,230 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createAuction, getMyAuctions } from "../../api/auction/auctionApi";
+import {
+  createCategory,
+  createProduct,
+  getMyProducts,
+  getProductCategories,
+} from "../../api/product/productApi";
 
 import "./CreateAuction.css";
 
 export default function CreateAuction() {
   const [useCustomCategory, setUseCustomCategory] = useState(false);
   const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [productImages, setProductImages] = useState([]);
   const [products, setProducts] = useState([]);
+  const [assignedProductIds, setAssignedProductIds] = useState(() => new Set());
   const [selectedProductId, setSelectedProductId] = useState("");
+  const [flowProductId, setFlowProductId] = useState(null);
+  const [flowHasProduct, setFlowHasProduct] = useState(false);
+  const [flowAuctionCreated, setFlowAuctionCreated] = useState(false);
+  const [isCreatingAuction, setIsCreatingAuction] = useState(false);
+  const [isAddingProduct, setIsAddingProduct] = useState(false);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+
+  const normalizeProduct = (item) => {
+    const rawImages = item.imageUrl ?? item.images ?? item.productImages ?? [];
+    const images = Array.isArray(rawImages)
+      ? rawImages
+      : typeof rawImages === "string" && rawImages.trim()
+        ? (() => {
+            const value = rawImages.trim();
+
+            // New format: a JSON-serialized array of image URLs.
+            try {
+              const parsed = JSON.parse(value);
+              if (Array.isArray(parsed)) {
+                return parsed.filter(
+                  (image) => typeof image === "string" && image.trim(),
+                );
+              }
+            } catch {
+              // Continue with legacy formats below.
+            }
+
+            // A data URL contains a comma after "base64"; keep it intact.
+            if (/^data:image\//i.test(value)) {
+              return [value];
+            }
+
+            // Legacy format for ordinary URLs (not Base64 data URLs).
+            return value
+              .split(",")
+              .map((image) => image.trim())
+              .filter(Boolean);
+          })()
+        : [];
+
+    return {
+      ...item,
+      productId: item.productId ?? item.id ?? null,
+      productName:
+        item.pname ?? item.productName ?? item.name ?? "Unnamed Product",
+      category:
+        item.categoryName ??
+        item.category?.categoryName ??
+        item.category ??
+        "—",
+      basePrice: item.basePrice ?? 0,
+      description: item.description ?? "",
+      images,
+      verificationStatus:
+        item.verificationStatus ??
+        item.status ??
+        (item.isVerified === true ? "Verified" : "Pending"),
+      verifiedBy: item.verifiedBy ?? null,
+      verifiedAt: item.verifiedAt ?? null,
+      remarks: item.remarks ?? "Product is waiting for admin verification.",
+    };
+  };
+
+  const getImageSource = (image) => {
+    if (typeof image === "string") return image;
+    if (image instanceof File) return URL.createObjectURL(image);
+    return "";
+  };
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        setIsLoadingCategories(true);
+        const response = await getProductCategories();
+        const payload = response?.data ?? response;
+        const categoryList = Array.isArray(payload)
+          ? payload
+          : (payload?.categories ?? payload?.content ?? payload?.data ?? []);
+        setCategories(
+          (Array.isArray(categoryList) ? categoryList : []).map((item) => ({
+            ...item,
+            categoryId: item.categoryId ?? item.id,
+            categoryName: item.categoryName ?? item.name ?? "",
+          })),
+        );
+      } catch (error) {
+        console.error("Failed to load product categories:", error);
+        setCategories([]);
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
+  const getListFromResponse = (response, keys = []) => {
+    const payload = response?.data ?? response;
+    if (Array.isArray(payload)) return payload;
+    for (const key of keys) {
+      if (Array.isArray(payload?.[key])) return payload[key];
+    }
+    if (Array.isArray(payload?.data)) return payload.data;
+    return [];
+  };
+
+  const getAuctionProductId = (auctionItem) =>
+    auctionItem?.productId ??
+    auctionItem?.product?.productId ??
+    auctionItem?.product?.id ??
+    auctionItem?.product_id ??
+    auctionItem?.product?.product_id ??
+    null;
+
+  const productAlreadyAssigned = (item) =>
+    item?.isAssignedToAuction === true ||
+    item?.assignedToAuction === true ||
+    item?.auctionId != null ||
+    item?.auction?.auctionId != null ||
+    item?.auction?.id != null ||
+    item?.auctionOrder?.auctionId != null;
+
+  useEffect(() => {
+    const loadMyProducts = async () => {
+      try {
+        setIsLoadingProducts(true);
+        const [productsResponse, auctionsResponse] = await Promise.all([
+          getMyProducts(),
+          getMyAuctions(),
+        ]);
+
+        const productList = getListFromResponse(productsResponse, [
+          "products",
+          "content",
+          "items",
+        ]);
+        const auctionList = getListFromResponse(auctionsResponse, [
+          "auctions",
+          "content",
+          "items",
+          "myAuctions",
+        ]);
+
+        const assignedIds = new Set(
+          auctionList
+            .map(getAuctionProductId)
+            .filter((id) => id != null)
+            .map(String),
+        );
+
+        productList.forEach((item) => {
+          if (productAlreadyAssigned(item) && item.productId != null) {
+            assignedIds.add(String(item.productId));
+          }
+        });
+
+        setProducts(productList.map(normalizeProduct));
+        setAssignedProductIds(assignedIds);
+      } catch (error) {
+        console.error("Failed to load seller products or auctions:", error);
+        setProducts([]);
+        setAssignedProductIds(new Set());
+      } finally {
+        setIsLoadingProducts(false);
+      }
+    };
+    loadMyProducts();
+  }, []);
+
+  // Refresh the current-session product's verification status periodically
+  // so the flow can move from Step 2 to Step 3 after admin verification.
+  useEffect(() => {
+    if (!flowHasProduct || flowProductId == null || flowAuctionCreated) return;
+
+    let isMounted = true;
+    const refreshProductStatus = async () => {
+      try {
+        const response = await getMyProducts();
+        const productList = getListFromResponse(response, [
+          "products",
+          "content",
+          "items",
+        ]);
+        const updatedProduct = productList
+          .map(normalizeProduct)
+          .find((item) => String(item.productId) === String(flowProductId));
+
+        if (isMounted && updatedProduct) {
+          setProducts((previous) =>
+            previous.map((item) =>
+              String(item.productId) === String(flowProductId)
+                ? { ...item, ...updatedProduct }
+                : item,
+            ),
+          );
+        }
+      } catch (error) {
+        console.error("Failed to refresh product verification status:", error);
+      }
+    };
+
+    const intervalId = window.setInterval(refreshProductStatus, 10000);
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, [flowHasProduct, flowProductId, flowAuctionCreated]);
 
   const auctionStartTimeRef = useRef(null);
   const auctionEndTimeRef = useRef(null);
@@ -24,7 +241,6 @@ export default function CreateAuction() {
     title: "",
     startTime: "",
     endTime: "",
-    bidIncrement: "",
   });
 
   const handleCategoryToggle = () => {
@@ -35,8 +251,8 @@ export default function CreateAuction() {
   const handleImageChange = (event) => {
     const files = Array.from(event.target.files || []);
 
-    if (files.length < 5) {
-      alert("Please select at least 5 product photos.");
+    if (files.length < 1) {
+      alert("Please select at least 1 product photo.");
       setProductImages([]);
       return;
     }
@@ -49,9 +265,9 @@ export default function CreateAuction() {
       return validType && validSize;
     });
 
-    if (validFiles.length < 5) {
+    if (validFiles.length < 1) {
       alert(
-        "Please select at least 5 valid JPG, JPEG, or PNG photos. Each photo must be below 5MB.",
+        "Please select at least 1 valid JPG, JPEG, or PNG photo. Each photo must be below 5MB.",
       );
       setProductImages([]);
       return;
@@ -60,7 +276,7 @@ export default function CreateAuction() {
     setProductImages(validFiles);
   };
 
-  const handleAddProduct = () => {
+  const handleAddProduct = async () => {
     if (!product.productName.trim()) {
       alert("Please enter product name.");
       return;
@@ -81,40 +297,286 @@ export default function CreateAuction() {
       return;
     }
 
-    if (productImages.length < 5) {
-      alert("At least 5 product photos are required.");
+    if (productImages.length < 1) {
+      alert("At least 1 product photo is required.");
       return;
     }
 
-    const newProduct = {
-      productId: null,
-      productName: product.productName.trim(),
-      category: category.trim(),
-      basePrice: product.basePrice,
-      description: product.description.trim(),
-      images: [...productImages],
-      verificationStatus: "Pending",
-      verifiedBy: null,
-      verifiedAt: null,
-      remarks: "Product is waiting for admin verification.",
+    // Convert the selected photos to data URLs for the JSON imageUrl field.
+    const readFileAsDataUrl = (file) =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error(`Could not read ${file.name}`));
+        reader.readAsDataURL(file);
+      });
+
+    try {
+      setIsAddingProduct(true);
+
+      const imageUrls = await Promise.all(
+        productImages.map((file) => readFileAsDataUrl(file)),
+      );
+
+      let categoryId;
+      let resolvedCategoryName = "";
+
+      if (useCustomCategory) {
+        const requestedCategoryName = category.trim();
+
+        // Reuse a category already loaded from the backend (case-insensitive).
+        let existingCategory = categories.find(
+          (item) =>
+            String(item.categoryName ?? "")
+              .trim()
+              .toLowerCase() === requestedCategoryName.toLowerCase(),
+        );
+
+        if (existingCategory?.categoryId != null) {
+          categoryId = Number(existingCategory.categoryId);
+          resolvedCategoryName = existingCategory.categoryName;
+        } else {
+          try {
+            const createdCategoryResponse = await createCategory({
+              categoryName: requestedCategoryName,
+            });
+            const createdPayload =
+              createdCategoryResponse?.data ?? createdCategoryResponse;
+            const createdCategory =
+              createdPayload?.category ??
+              createdPayload?.data ??
+              createdPayload;
+            categoryId =
+              createdCategory?.categoryId ??
+              createdCategory?.id ??
+              createdCategory?.category?.categoryId;
+            resolvedCategoryName =
+              createdCategory?.categoryName ?? requestedCategoryName;
+
+            if (!categoryId) {
+              throw new Error(
+                "Category was created, but its category ID was not returned by the server.",
+              );
+            }
+
+            const normalizedCreatedCategory = {
+              ...createdCategory,
+              categoryId: Number(categoryId),
+              categoryName: resolvedCategoryName,
+            };
+
+            setCategories((previous) => {
+              const alreadyAdded = previous.some(
+                (item) => String(item.categoryId) === String(categoryId),
+              );
+              return alreadyAdded
+                ? previous
+                : [...previous, normalizedCreatedCategory];
+            });
+          } catch (createError) {
+            // A 409 means the name already exists. Refresh categories and reuse its ID.
+            if (createError?.response?.status !== 409) {
+              throw createError;
+            }
+
+            try {
+              const refreshedResponse = await getProductCategories();
+              const refreshedPayload =
+                refreshedResponse?.data ?? refreshedResponse;
+              const refreshedList = Array.isArray(refreshedPayload)
+                ? refreshedPayload
+                : (refreshedPayload?.categories ??
+                  refreshedPayload?.content ??
+                  refreshedPayload?.data ??
+                  []);
+
+              const normalizedCategories = (
+                Array.isArray(refreshedList) ? refreshedList : []
+              ).map((item) => ({
+                ...item,
+                categoryId: item.categoryId ?? item.id,
+                categoryName: item.categoryName ?? item.name ?? "",
+              }));
+
+              existingCategory = normalizedCategories.find(
+                (item) =>
+                  String(item.categoryName ?? "")
+                    .trim()
+                    .toLowerCase() === requestedCategoryName.toLowerCase(),
+              );
+
+              if (existingCategory?.categoryId == null) {
+                throw new Error(
+                  `The category "${requestedCategoryName}" already exists, but its ID could not be retrieved. Check the categories API and database connection.`,
+                );
+              }
+
+              categoryId = Number(existingCategory.categoryId);
+              resolvedCategoryName = existingCategory.categoryName;
+              setCategories(normalizedCategories);
+            } catch (refreshError) {
+              if (
+                refreshError?.message?.includes(
+                  "already exists, but its ID could not be retrieved",
+                )
+              ) {
+                throw refreshError;
+              }
+              throw new Error(
+                `The category "${requestedCategoryName}" already exists (HTTP 409), but the categories list could not be loaded. Please fix GET /products/categories/all first.`,
+              );
+            }
+          }
+        }
+      } else {
+        categoryId = Number(category);
+        resolvedCategoryName =
+          categories.find(
+            (item) => String(item.categoryId) === String(category),
+          )?.categoryName ?? "";
+      }
+
+      if (!Number.isFinite(Number(categoryId)) || Number(categoryId) <= 0) {
+        throw new Error("A valid category ID could not be resolved.");
+      }
+
+      const productData = {
+        categoryId: Number(categoryId),
+        pname: product.productName.trim(),
+        basePrice: Number(product.basePrice),
+        description: product.description.trim(),
+        imageUrl: JSON.stringify(imageUrls),
+      };
+
+      const savedProduct = await createProduct(productData);
+
+      const categoryNameForProduct =
+        resolvedCategoryName ||
+        (useCustomCategory
+          ? category.trim()
+          : (categories.find(
+              (item) => String(item.categoryId) === String(category),
+            )?.categoryName ?? category));
+
+      const newProduct = normalizeProduct({
+        ...savedProduct,
+        productId: savedProduct.productId ?? savedProduct.id ?? null,
+        pname:
+          savedProduct.pname ??
+          savedProduct.productName ??
+          product.productName.trim(),
+        categoryName:
+          savedProduct.categoryName ??
+          savedProduct.category?.categoryName ??
+          categoryNameForProduct,
+        basePrice: savedProduct.basePrice ?? Number(product.basePrice),
+        description: savedProduct.description ?? product.description.trim(),
+        images: [...productImages],
+        isVerified: savedProduct.isVerified ?? false,
+        remarks:
+          savedProduct.remarks ?? "Product is waiting for admin verification.",
+      });
+
+      setProducts((previous) => [...previous, newProduct]);
+      setFlowProductId(newProduct.productId);
+      setFlowHasProduct(true);
+      setFlowAuctionCreated(false);
+      setProduct({
+        productId: null,
+        productName: "",
+        category: "",
+        basePrice: "",
+        description: "",
+      });
+      setCategory("");
+      setUseCustomCategory(false);
+      setProductImages([]);
+      alert("Product saved successfully and submitted for verification.");
+    } catch (error) {
+      console.error("Failed to add product:", error);
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to save product. Please try again.",
+      );
+    } finally {
+      setIsAddingProduct(false);
+    }
+  };
+
+  const handleCreateAuction = async () => {
+    if (!selectedProduct) {
+      alert("Please select a verified product.");
+      return;
+    }
+
+    if (!auction.startTime || !auction.endTime) {
+      alert("Please select auction start and end times.");
+      return;
+    }
+
+    if (new Date(auction.endTime) <= new Date(auction.startTime)) {
+      alert("Auction end time must be after the start time.");
+      return;
+    }
+
+    const formatDateTime = (dateTime) => {
+      if (!dateTime) return null;
+
+      // Add seconds to datetime-local values when they are omitted.
+      const dateTimeWithSeconds =
+        dateTime.length === 16 ? `${dateTime}:00` : dateTime;
+
+      // The backend expects a space between the date and time.
+      return dateTimeWithSeconds.replace("T", " ");
     };
 
-    setProducts((previous) => [...previous, newProduct]);
+    const auctionData = {
+      productId: selectedProduct.productId,
+      title: auction.title.trim() || selectedProduct.productName,
+      startTime: formatDateTime(auction.startTime),
+      endTime: formatDateTime(auction.endTime),
+      bidIncrementedBy: Number(selectedProduct.basePrice),
+    };
 
-    setProduct({
-      productId: null,
-      productName: "",
-      category: "",
-      basePrice: "",
-      description: "",
-    });
-    setCategory("");
-    setUseCustomCategory(false);
-    setProductImages([]);
+    try {
+      setIsCreatingAuction(true);
+      await createAuction(auctionData);
+
+      // Keep the product record, but remove it from the auction selector.
+      setAssignedProductIds((previous) => {
+        const next = new Set(previous);
+        next.add(String(selectedProduct.productId));
+        return next;
+      });
+      if (String(flowProductId) === String(selectedProduct.productId)) {
+        setFlowAuctionCreated(true);
+      }
+      setSelectedProductId("");
+      setAuction({
+        title: "",
+        startTime: "",
+        endTime: "",
+      });
+
+      alert("Auction created successfully.");
+    } catch (error) {
+      console.error("Failed to create auction:", error);
+      alert(
+        error?.response?.data?.message ||
+          "Failed to create auction. Please try again.",
+      );
+    } finally {
+      setIsCreatingAuction(false);
+    }
   };
 
   const verifiedProducts = products.filter(
-    (item) => item.verificationStatus === "Verified",
+    (item) =>
+      String(item.verificationStatus).trim().toLowerCase() === "verified" &&
+      item.productId != null &&
+      !assignedProductIds.has(String(item.productId)) &&
+      !productAlreadyAssigned(item),
   );
 
   const selectedProduct = products.find(
@@ -123,10 +585,23 @@ export default function CreateAuction() {
 
   const auctionEnabled = Boolean(selectedProduct);
 
-  // Frontend-only progress state.
-  // Backend/admin verification will update verificationStatus later.
-  const currentFlowStep =
-    products.length === 0 ? 1 : verifiedProducts.length > 0 ? 4 : 2;
+  // Flow progress is based only on the product added in this session,
+  // not on older products loaded from the database.
+  const flowProduct = products.find(
+    (item) => String(item.productId) === String(flowProductId),
+  );
+  const flowProductIsVerified =
+    String(flowProduct?.verificationStatus ?? "")
+      .trim()
+      .toLowerCase() === "verified";
+
+  const currentFlowStep = !flowHasProduct
+    ? 1
+    : flowAuctionCreated
+      ? 4
+      : flowProductIsVerified
+        ? 3
+        : 2;
 
   const formatPrice = (price) => {
     if (!price) return "₹0";
@@ -202,19 +677,18 @@ export default function CreateAuction() {
                     onChange={(event) => setCategory(event.target.value)}
                   >
                     <option value="" disabled>
-                      Select a category
+                      {isLoadingCategories
+                        ? "Loading categories..."
+                        : "Select a category"}
                     </option>
-                    <option value="Electronics">Electronics</option>
-                    <option value="Vehicles">Vehicles</option>
-                    <option value="Real Estate">Real Estate</option>
-                    <option value="Art & Collectibles">
-                      Art & Collectibles
-                    </option>
-                    <option value="Jewelry & Watches">Jewelry & Watches</option>
-                    <option value="Furniture">Furniture</option>
-                    <option value="Fashion">Fashion</option>
-                    <option value="Sports">Sports</option>
-                    <option value="Books & Media">Books & Media</option>
+                    {categories.map((item) => (
+                      <option
+                        key={item.categoryId}
+                        value={String(item.categoryId)}
+                      >
+                        {item.categoryName}
+                      </option>
+                    ))}
                   </select>
                 )}
 
@@ -281,7 +755,7 @@ export default function CreateAuction() {
                 <label htmlFor="productImages" className="upload-placeholder">
                   <div className="upload-icon">↥</div>
                   <strong>Click to upload product photos</strong>
-                  <span>Select at least 5 photos</span>
+                  <span>Select at least 1 photo</span>
                   <small>JPG, PNG, JPEG • Maximum 5MB per image</small>
                 </label>
 
@@ -298,13 +772,13 @@ export default function CreateAuction() {
               {productImages.length > 0 && (
                 <div
                   className={`photo-count ${
-                    productImages.length >= 5 ? "photo-count-valid" : ""
+                    productImages.length >= 1 ? "photo-count-valid" : ""
                   }`}
                 >
                   {productImages.length} photos selected
-                  {productImages.length >= 5
+                  {productImages.length >= 1
                     ? " ✓ Minimum requirement satisfied"
-                    : " — At least 5 required"}
+                    : " — At least 1 required"}
                 </div>
               )}
 
@@ -316,7 +790,7 @@ export default function CreateAuction() {
                       key={`${file.name}-${index}`}
                     >
                       <img
-                        src={URL.createObjectURL(file)}
+                        src={getImageSource(file)}
                         alt={`Product ${index + 1}`}
                       />
                       <span>{index + 1}</span>
@@ -330,9 +804,10 @@ export default function CreateAuction() {
               type="button"
               className="add-product-button"
               onClick={handleAddProduct}
+              disabled={isAddingProduct}
             >
               <span>+</span>
-              Add Product
+              {isAddingProduct ? "Saving Product..." : "Add Product"}
             </button>
           </div>
 
@@ -454,7 +929,7 @@ export default function CreateAuction() {
               <div className="selected-product-image">
                 {selectedProduct?.images?.[0] ? (
                   <img
-                    src={URL.createObjectURL(selectedProduct.images[0])}
+                    src={getImageSource(selectedProduct.images[0])}
                     alt={selectedProduct.productName}
                   />
                 ) : (
@@ -506,21 +981,18 @@ export default function CreateAuction() {
                 <small>If left empty, the product name will be used.</small>
               </div>
 
-              {/* BID INCREMENT */}
+              {/* BID INCREMENT - SAME AS SELECTED PRODUCT BASE PRICE */}
               <div className="create-form-group bid-increment-group">
                 <label htmlFor="bidIncrement">
-                  Bid Increment <span>*</span>
+                  Bid Increment (Same as Base Price)
                 </label>
                 <input
                   id="bidIncrement"
                   type="number"
-                  min="0"
-                  placeholder="Enter bid increment amount"
-                  value={auction.bidIncrement}
+                  value={selectedProduct?.basePrice ?? ""}
+                  placeholder="Select a verified product"
                   disabled={!auctionEnabled}
-                  onChange={(event) =>
-                    setAuction({ ...auction, bidIncrement: event.target.value })
-                  }
+                  readOnly
                 />
               </div>
 
@@ -578,10 +1050,11 @@ export default function CreateAuction() {
             <button
               type="button"
               className="create-auction-button"
-              disabled={!auctionEnabled}
+              disabled={!auctionEnabled || isCreatingAuction}
+              onClick={handleCreateAuction}
             >
               <span>⚒</span>
-              Create Auction
+              {isCreatingAuction ? "Creating Auction..." : "Create Auction"}
             </button>
           </div>
         </section>
@@ -603,6 +1076,10 @@ export default function CreateAuction() {
           </div>
 
           <div className="added-products-list">
+            {isLoadingProducts && <p>Loading your products...</p>}
+            {!isLoadingProducts && products.length === 0 && (
+              <p>You have not added any products yet.</p>
+            )}
             {products.map((item, index) => (
               <article
                 className="added-product-details"
@@ -640,7 +1117,7 @@ export default function CreateAuction() {
                         key={`${file.name}-${photoIndex}`}
                       >
                         <img
-                          src={URL.createObjectURL(file)}
+                          src={getImageSource(file)}
                           alt={`${item.productName} ${photoIndex + 1}`}
                         />
                         <span>{photoIndex + 1}</span>

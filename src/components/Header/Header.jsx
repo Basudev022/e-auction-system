@@ -11,6 +11,10 @@ export default function Header({
   onLogin,
   onLogout,
   onDashboard,
+  onSellerDashboard,
+  canAccessSellerDashboard = false,
+  onAdminDashboard,
+  isAdmin = false,
   dashboardMode = false,
   sellerDashboardMode = false,
   onSellerVerified,
@@ -259,6 +263,30 @@ export default function Header({
   };
 
   // ==========================================
+  // SELLER DASHBOARD
+  // ==========================================
+
+  const handleSellerDashboard = () => {
+    setShowProfileMenu(false);
+
+    if (onSellerDashboard) {
+      onSellerDashboard();
+    }
+  };
+
+  // ==========================================
+  // ADMIN DASHBOARD
+  // ==========================================
+
+  const handleAdminDashboard = () => {
+    setShowProfileMenu(false);
+
+    if (onAdminDashboard) {
+      onAdminDashboard();
+    }
+  };
+
+  // ==========================================
   // ACCOUNT SETTINGS
   // ==========================================
 
@@ -468,8 +496,19 @@ export default function Header({
 
           {showProfileMenu && (
             <div className="profile-menu">
+              {/* ADMIN DASHBOARD */}
+              {isAdmin && (
+                <button
+                  type="button"
+                  className="profile-menu-item"
+                  onClick={handleAdminDashboard}
+                >
+                  Admin Dashboard
+                </button>
+              )}
+
               {/* SELLER DASHBOARD */}
-              {sellerDashboardMode && (
+              {!isAdmin && sellerDashboardMode && (
                 <button
                   type="button"
                   className="profile-menu-item"
@@ -479,8 +518,22 @@ export default function Header({
                 </button>
               )}
 
+              {/* SELLER DASHBOARD: shown to users with seller access */}
+              {!isAdmin &&
+                dashboardMode &&
+                !sellerDashboardMode &&
+                canAccessSellerDashboard && (
+                  <button
+                    type="button"
+                    className="profile-menu-item"
+                    onClick={handleSellerDashboard}
+                  >
+                    Seller Dashboard
+                  </button>
+                )}
+
               {/* NORMAL HOME / ALL AUCTIONS */}
-              {!sellerDashboardMode && !dashboardMode && (
+              {!isAdmin && !sellerDashboardMode && !dashboardMode && (
                 <button
                   type="button"
                   className="profile-menu-item"

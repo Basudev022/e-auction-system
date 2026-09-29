@@ -12,13 +12,15 @@ export default function Home({
   onLogin,
   onLogout,
   isLoggedIn,
+  isAdmin,
   user,
   onDashboard,
+  onAdminDashboard,
   onViewAllAuctions,
   onProductDetails,
   onHome,
   onHowItWorks,
-  activeNav,
+  activeLink,
   onActiveLinkChange,
 }) {
   return (
@@ -27,12 +29,14 @@ export default function Home({
         onLogin={onLogin}
         onLogout={onLogout}
         isLoggedIn={isLoggedIn}
+        isAdmin={isAdmin}
         user={user}
         onDashboard={onDashboard}
+        onAdminDashboard={onAdminDashboard}
         onHome={onHome}
         onViewAllAuctions={onViewAllAuctions}
         onHowItWorks={onHowItWorks}
-        activeLink={activeNav}
+        activeLink={activeLink}
         onActiveLinkChange={onActiveLinkChange}
       />
 
@@ -59,7 +63,10 @@ export default function Home({
 
         <TrustBar />
 
-        {/* <section id="how-it-works"><HowItWorks /></section> */}
+        {/* How It Works section */}
+        {/* <section id="how-it-works">
+          <HowItWorks />
+        </section> */}
       </main>
 
       <Footer />

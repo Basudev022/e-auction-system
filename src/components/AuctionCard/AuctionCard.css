@@ -188,6 +188,34 @@
 }
 
 /* =========================================================
+   AUCTION ID
+========================================================= */
+
+.auction-id {
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+
+  margin-bottom: 8px;
+
+  font-size: 12px;
+
+  color: #64748b;
+}
+
+.auction-id strong {
+  color: #006b55;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =========================================================
    PRODUCT TITLE
 ========================================================= */
 
@@ -432,6 +460,14 @@
     padding: 9px;
   }
 
+  .auction-id {
+    font-size: 11px;
+  }
+
+  .auction-id strong {
+    font-size: 11px;
+  }
+
   .auction-title {
     font-size: 13px;
   }
@@ -486,6 +522,10 @@
     align-items: center;
   }
 }
+
+/* =========================================================
+   SIMILAR PRODUCTS GRID
+========================================================= */
 
 .similar-products-grid .auction-bottom {
   justify-content: center;

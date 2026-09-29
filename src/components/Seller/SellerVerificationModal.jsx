@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { submitKyc } from "../../api/kyc/kycApi";
 import "./SellerVerificationModal.css";
 
 export default function SellerVerificationModal({ onClose, onSellerVerified }) {
@@ -17,13 +17,8 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
 
-  /*
-   * ==========================================
-   * SELLER VERIFICATION COMPLETED
-   * ==========================================
-   */
-
   const [verificationComplete, setVerificationComplete] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ==========================================
   // TERMS SCROLL
@@ -61,7 +56,6 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
 
   const handleDocumentTypeChange = (event) => {
     setDocumentType(event.target.value);
-
     setDocumentNumber("");
 
     setOtpSent(false);
@@ -88,7 +82,6 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
 
     if (documentType === "AADHAAR_CARD") {
       const digits = value.replace(/\D/g, "").slice(0, 12);
-
       value = digits.replace(/(\d{4})(?=\d)/g, "$1 ");
     }
 
@@ -109,13 +102,11 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
   const validateDocument = () => {
     if (documentType === "PAN_CARD") {
       const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
-
       return panRegex.test(documentNumber);
     }
 
     if (documentType === "AADHAAR_CARD") {
       const aadhaarDigits = documentNumber.replace(/\s/g, "");
-
       return /^\d{12}$/.test(aadhaarDigits);
     }
 
@@ -131,45 +122,35 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
       setMessage(
         "Please read the Terms & Conditions and Privacy Policy completely.",
       );
-
       setMessageType("error");
-
       return;
     }
 
     if (!accepted) {
       setMessage("Please accept the Terms & Conditions and Privacy Policy.");
-
       setMessageType("error");
-
       return;
     }
 
     if (!documentType) {
       setMessage("Please select a document.");
-
       setMessageType("error");
-
       return;
     }
 
     if (!documentNumber.trim()) {
       setMessage("Please enter your document number.");
-
       setMessageType("error");
-
       return;
     }
 
     if (!validateDocument()) {
-      if (documentType === "PAN_CARD") {
-        setMessage("Enter a valid PAN number");
-      } else {
-        setMessage("Enter a valid 12-digit Aadhaar number.");
-      }
-
+      setMessage(
+        documentType === "PAN_CARD"
+          ? "Enter a valid PAN number."
+          : "Enter a valid 12-digit Aadhaar number.",
+      );
       setMessageType("error");
-
       return;
     }
 
@@ -178,10 +159,7 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
     setDocumentVerified(false);
 
     setMessage("OTP has been sent to your registered mobile number.");
-
     setMessageType("success");
-
-    // Backend OTP API will be connected here later.
   };
 
   // ==========================================
@@ -201,101 +179,87 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
   const handleVerifyOtp = () => {
     if (otp.length !== 6) {
       setMessage("Please enter the 6-digit OTP.");
-
       setMessageType("error");
-
       return;
     }
 
+    // Current OTP verification is frontend-only.
     setDocumentVerified(true);
-
     setOtpSent(false);
-
     setOtp("");
 
     setMessage("Document number verified successfully.");
-
     setMessageType("success");
-
-    // Backend OTP verification API will be connected here later.
   };
 
   // ==========================================
-  // VERIFY REQUEST
+  // SUBMIT KYC REQUEST TO BACKEND
   // ==========================================
 
-  const handleVerifyRequest = () => {
+  const handleVerifyRequest = async () => {
     if (!termsRead || !privacyRead) {
       setMessage("Please read all Terms & Conditions and Privacy Policy.");
-
       setMessageType("error");
-
       return;
     }
 
     if (!accepted) {
       setMessage("Please accept the Terms & Conditions and Privacy Policy.");
-
       setMessageType("error");
-
       return;
     }
 
     if (!documentVerified) {
       setMessage("Please verify your PAN Card or Aadhaar number first.");
-
       setMessageType("error");
-
       return;
     }
 
-    /*
-     * ========================================
-     * FRONTEND-ONLY SELLER VERIFICATION
-     * ========================================
-     *
-     * Seller status is managed by App.jsx.
-     *
-     * IMPORTANT:
-     * Do NOT store isSeller in localStorage.
-     *
-     * App.jsx will change:
-     *
-     * isSeller = false
-     *        ↓
-     * isSeller = true
-     *
-     * after this verification succeeds.
-     *
-     * Backend will be connected later.
-     */
+    if (!validateDocument()) {
+      setMessage(
+        documentType === "PAN_CARD"
+          ? "Enter a valid PAN number."
+          : "Enter a valid 12-digit Aadhaar number.",
+      );
+      setMessageType("error");
+      return;
+    }
 
-    /*
-     * Show seller success notification.
-     */
+    if (isSubmitting) return;
 
-    setVerificationComplete(true);
+    try {
+      setIsSubmitting(true);
+      setMessage("");
+      setMessageType("");
 
-    setMessage("Seller verification successful!");
+      const kycData = {
+        documentType,
+        documentNumber: documentNumber.replace(/\s/g, ""),
+        remarks: "Seller verification request submitted by buyer.",
+      };
 
-    setMessageType("success");
-  };
+      const response = await submitKyc(kycData);
 
-  // ==========================================
-  // LOGIN AS SELLER
-  // ==========================================
+      console.log("KYC submission response:", response);
 
-  const handleLoginAsSeller = () => {
-    /*
-     * Notify App.jsx that seller verification
-     * has been completed.
-     *
-     * App.jsx is responsible for changing
-     * isSeller from false to true.
-     */
+      // KYC is submitted; the user is NOT a seller yet.
+      setVerificationComplete(true);
 
-    if (onSellerVerified) {
-      onSellerVerified();
+      setMessage("Your KYC request has been submitted successfully.");
+      setMessageType("success");
+    } catch (error) {
+      console.error("KYC submission failed:", error);
+
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to submit your KYC request. Please try again.";
+
+      setMessage(errorMessage);
+      setMessageType("error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -314,7 +278,8 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
 
   const canVerifyOtp = otpSent && otp.length === 6;
 
-  const canVerifyRequest = canAcceptTerms && accepted && documentVerified;
+  const canVerifyRequest =
+    canAcceptTerms && accepted && documentVerified && !isSubmitting;
 
   const panCharacterCount =
     documentType === "PAN_CARD" ? documentNumber.length : 0;
@@ -331,35 +296,35 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
   return (
     <div className="seller-modal-overlay">
       <div className="seller-modal">
-        {/* ====================================
-            SUCCESS NOTIFICATION
-        ==================================== */}
-
         {verificationComplete ? (
+          // ==================================
+          // KYC SUBMISSION SUCCESS
+          // ==================================
           <div className="seller-verification-success">
             <div className="seller-success-icon">✓</div>
 
-            <h2>Seller Verification Successful!</h2>
-
-            <p>You have successfully become a seller.</p>
+            <h2>KYC Request Submitted</h2>
 
             <p>
-              Please login again as a seller to access your Seller Dashboard.
+              Your seller verification request has been submitted successfully.
+            </p>
+
+            <p>
+              Your request is currently pending admin approval. You will be able
+              to access seller features after your KYC is approved.
             </p>
 
             <button
               type="button"
               className="seller-login-again-btn"
-              onClick={handleLoginAsSeller}
+              onClick={onClose}
             >
-              Login as Seller
+              Close
             </button>
           </div>
         ) : (
           <>
-            {/* ==================================
-                CLOSE BUTTON
-            ================================== */}
+            {/* CLOSE BUTTON */}
 
             <button
               type="button"
@@ -370,9 +335,7 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
               ×
             </button>
 
-            {/* ==================================
-                HEADER
-            ================================== */}
+            {/* HEADER */}
 
             <div className="seller-modal-header">
               <h2>Become A Seller</h2>
@@ -383,12 +346,10 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
               </p>
             </div>
 
-            {/* ==================================
-                POLICIES
-            ================================== */}
+            {/* POLICIES */}
 
             <div className="seller-policy-grid">
-              {/* TERMS */}
+              {/* TERMS AND CONDITIONS */}
 
               <div className="seller-policy-section">
                 <h3>Terms &amp; Conditions</h3>
@@ -439,7 +400,7 @@ eAuction may update these terms when necessary. Continued use of seller services
                 </div>
               </div>
 
-              {/* PRIVACY */}
+              {/* PRIVACY POLICY */}
 
               <div className="seller-policy-section">
                 <h3>Privacy Policy</h3>
@@ -493,9 +454,7 @@ This privacy policy may be updated from time to time to reflect changes in our s
               </div>
             </div>
 
-            {/* ==================================
-                AGREEMENT
-            ================================== */}
+            {/* AGREEMENT */}
 
             <label
               className={`seller-agreement ${
@@ -516,9 +475,7 @@ This privacy policy may be updated from time to time to reflect changes in our s
               </span>
             </label>
 
-            {/* ==================================
-                DOCUMENT SECTION
-            ================================== */}
+            {/* DOCUMENT SECTION */}
 
             <div className="seller-document-section">
               <div className="seller-field">
@@ -530,9 +487,7 @@ This privacy policy may be updated from time to time to reflect changes in our s
                   onChange={handleDocumentTypeChange}
                 >
                   <option value="">Select Document</option>
-
                   <option value="PAN_CARD">PAN Card</option>
-
                   <option value="AADHAAR_CARD">Aadhaar Card</option>
                 </select>
               </div>
@@ -584,9 +539,7 @@ This privacy policy may be updated from time to time to reflect changes in our s
               </div>
             </div>
 
-            {/* ==================================
-                VERIFY DOCUMENT
-            ================================== */}
+            {/* VERIFY DOCUMENT */}
 
             {!documentVerified && (
               <button
@@ -599,15 +552,13 @@ This privacy policy may be updated from time to time to reflect changes in our s
               </button>
             )}
 
-            {/* VERIFIED */}
+            {/* VERIFIED BADGE */}
 
             {documentVerified && (
               <div className="verified-badge">✓ Verified</div>
             )}
 
-            {/* ==================================
-                MESSAGE
-            ================================== */}
+            {/* MESSAGE */}
 
             {message && (
               <div className={`seller-verification-message ${messageType}`}>
@@ -615,9 +566,7 @@ This privacy policy may be updated from time to time to reflect changes in our s
               </div>
             )}
 
-            {/* ==================================
-                OTP
-            ================================== */}
+            {/* OTP SECTION */}
 
             {otpSent && (
               <div className="seller-otp-section">
@@ -648,9 +597,7 @@ This privacy policy may be updated from time to time to reflect changes in our s
               </div>
             )}
 
-            {/* ==================================
-                VERIFY REQUEST
-            ================================== */}
+            {/* SUBMIT KYC REQUEST */}
 
             <div className="seller-modal-footer">
               <button
@@ -659,7 +606,7 @@ This privacy policy may be updated from time to time to reflect changes in our s
                 disabled={!canVerifyRequest}
                 onClick={handleVerifyRequest}
               >
-                Verify Request
+                {isSubmitting ? "Submitting..." : "Submit KYC Request"}
               </button>
             </div>
           </>

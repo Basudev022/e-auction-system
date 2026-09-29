@@ -2028,3 +2028,18 @@
 html {
   overflow-y: scroll;
 }
+
+/* Highlight the entire auction row when the countdown reaches zero */
+.bid-item.auction-time-zero {
+  background-color: #006b55;
+  color: #ffffff;
+  border-color: #006b55;
+}
+
+/* Keep all row text readable */
+.bid-item.auction-time-zero h3,
+.bid-item.auction-time-zero span,
+.bid-item.auction-time-zero strong,
+.bid-item.auction-time-zero small {
+  color: #ffffff;
+}

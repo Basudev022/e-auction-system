@@ -1,236 +1,68 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import watch from "../../assets/images/watch.png";
 import AuctionCard from "../../components/AuctionCard/AuctionCard";
 import Header from "../../components/Header/Header";
+
+import { getAllAuctions } from "../../api/auction/auctionApi";
+import {
+  getProductById,
+  getProductCategories,
+} from "../../api/product/productApi";
 
 import "./AllAuction.css";
 
 /* =========================================================
-   CATEGORIES
+   GET AUCTION LIFECYCLE
 ========================================================= */
 
-const categories = [
-  { name: "Electronics", count: 128 },
-  { name: "Vehicles", count: 86 },
-  { name: "Real Estate", count: 19 },
-  { name: "Art & Collectibles", count: 64 },
-  { name: "Jewelry & Watches", count: 89 },
-  { name: "Furniture", count: 47 },
-  { name: "Fashion", count: 53 },
-  { name: "Sports", count: 31 },
-  { name: "Books & Media", count: 28 },
-];
+const getAuctionCountdown = (auction, now) => {
+  const startMs = auction?.startTime
+    ? new Date(auction.startTime).getTime()
+    : NaN;
+
+  const endMs = auction?.endTime ? new Date(auction.endTime).getTime() : NaN;
+
+  if (
+    !Number.isFinite(startMs) ||
+    !Number.isFinite(endMs) ||
+    endMs <= startMs
+  ) {
+    return {
+      timeLeft: null,
+      countdownLabel: "Time Left",
+      countdownStatus: "INVALID",
+      realTimeStatus: "INVALID",
+    };
+  }
+
+  if (now < startMs) {
+    return {
+      timeLeft: Math.max(0, Math.floor((startMs - now) / 1000)),
+      countdownLabel: "Starts In",
+      countdownStatus: "UPCOMING",
+      realTimeStatus: "SCHEDULED",
+    };
+  }
+
+  if (now >= endMs) {
+    return {
+      timeLeft: 0,
+      countdownLabel: "Auction Ended",
+      countdownStatus: "ENDED",
+      realTimeStatus: "ENDED",
+    };
+  }
+
+  return {
+    timeLeft: Math.max(0, Math.floor((endMs - now) / 1000)),
+    countdownLabel: "Time Left",
+    countdownStatus: "LIVE",
+    realTimeStatus: "ACTIVE",
+  };
+};
 
 /* =========================================================
-   AUCTIONS
-========================================================= */
-
-const auctions = [
-  {
-    id: 1,
-    image: watch,
-    title: "Rolex Submariner Date",
-    seller: "Luxury Watches",
-    category: "Jewelry & Watches",
-    timeLeft: "02h 15m 30s",
-    price: 850000,
-    type: "Live Auctions",
-  },
-  {
-    id: 2,
-    image: watch,
-    title: "2022 Tesla Model 3",
-    seller: "Premium Motors",
-    category: "Vehicles",
-    timeLeft: "01h 45m 22s",
-    price: 2445000,
-    type: "Live Auctions",
-  },
-  {
-    id: 3,
-    image: watch,
-    title: "Vintage Landscape Painting",
-    seller: "Art Gallery",
-    category: "Art & Collectibles",
-    timeLeft: "00h 30m 10s",
-    price: 25500,
-    type: "Ending Soon",
-  },
-  {
-    id: 4,
-    image: watch,
-    title: "Canon EOS R5 Camera",
-    seller: "Camera World",
-    category: "Electronics",
-    timeLeft: "02h 35m 45s",
-    price: 125000,
-    type: "Live Auctions",
-  },
-  {
-    id: 5,
-    image: watch,
-    title: "Diamond Necklace",
-    seller: "Royal Jewellers",
-    category: "Jewelry & Watches",
-    timeLeft: "01h 05m 50s",
-    price: 325000,
-    type: "Ending Soon",
-  },
-  {
-    id: 6,
-    image: watch,
-    title: "MacBook Pro M3",
-    seller: "Tech Store",
-    category: "Electronics",
-    timeLeft: "03h 20m 15s",
-    price: 175000,
-    type: "Live Auctions",
-  },
-  {
-    id: 7,
-    image: watch,
-    title: "BMW X5 2023",
-    seller: "Auto World",
-    category: "Vehicles",
-    timeLeft: "04h 12m 32s",
-    price: 6850000,
-    type: "Upcoming Auctions",
-  },
-  {
-    id: 8,
-    image: watch,
-    title: "Modern Abstract Art",
-    seller: "Modern Art House",
-    category: "Art & Collectibles",
-    timeLeft: "00h 42m 18s",
-    price: 78000,
-    type: "Ending Soon",
-  },
-  {
-    id: 9,
-    image: watch,
-    title: "Luxury Leather Sofa",
-    seller: "Home Interiors",
-    category: "Furniture",
-    timeLeft: "05h 10m 05s",
-    price: 95000,
-    type: "Live Auctions",
-  },
-  {
-    id: 10,
-    image: watch,
-    title: "Premium Sports Watch",
-    seller: "Watch House",
-    category: "Jewelry & Watches",
-    timeLeft: "01h 50m 40s",
-    price: 185000,
-    type: "Live Auctions",
-  },
-  {
-    id: 11,
-    image: watch,
-    title: "Sony Alpha A7 IV",
-    seller: "Digital Hub",
-    category: "Electronics",
-    timeLeft: "06h 15m 20s",
-    price: 145000,
-    type: "Upcoming Auctions",
-  },
-  {
-    id: 12,
-    image: watch,
-    title: "Honda Civic 2021",
-    seller: "City Motors",
-    category: "Vehicles",
-    timeLeft: "07h 25m 12s",
-    price: 1120000,
-    type: "Upcoming Auctions",
-  },
-  {
-    id: 13,
-    image: watch,
-    title: "Antique Wooden Chair",
-    seller: "Classic Furniture",
-    category: "Furniture",
-    timeLeft: "02h 48m 35s",
-    price: 42000,
-    type: "Live Auctions",
-  },
-  {
-    id: 14,
-    image: watch,
-    title: "Gold Chain 22K",
-    seller: "Golden Palace",
-    category: "Jewelry & Watches",
-    timeLeft: "03h 05m 44s",
-    price: 210000,
-    type: "Live Auctions",
-  },
-  {
-    id: 15,
-    image: watch,
-    title: "Rare First Edition Book",
-    seller: "Book Collectors",
-    category: "Books & Media",
-    timeLeft: "00h 55m 28s",
-    price: 18500,
-    type: "Ending Soon",
-  },
-  {
-    id: 16,
-    image: watch,
-    title: "Designer Leather Jacket",
-    seller: "Fashion House",
-    category: "Fashion",
-    timeLeft: "08h 10m 18s",
-    price: 35000,
-    type: "Upcoming Auctions",
-  },
-  {
-    id: 17,
-    image: watch,
-    title: "Professional Football Kit",
-    seller: "Sports World",
-    category: "Sports",
-    timeLeft: "05h 40m 05s",
-    price: 22000,
-    type: "Live Auctions",
-  },
-  {
-    id: 18,
-    image: watch,
-    title: "Modern Apartment",
-    seller: "Prime Properties",
-    category: "Real Estate",
-    timeLeft: "12h 20m 30s",
-    price: 8500000,
-    type: "Upcoming Auctions",
-  },
-  {
-    id: 19,
-    image: watch,
-    title: "iPhone 17 Pro Max",
-    seller: "Mobile Store",
-    category: "Electronics",
-    timeLeft: "01h 25m 10s",
-    price: 145000,
-    type: "Ending Soon",
-  },
-  {
-    id: 20,
-    image: watch,
-    title: "Royal Dining Table",
-    seller: "Home Gallery",
-    category: "Furniture",
-    timeLeft: "09h 35m 22s",
-    price: 115000,
-    type: "Upcoming Auctions",
-  },
-];
-
-/* =========================================================
-   ALL AUCTIONS
+   ALL AUCTIONS PAGE
 ========================================================= */
 
 export default function AllAuction({
@@ -238,19 +70,184 @@ export default function AllAuction({
   onLogout,
   isLoggedIn,
   user,
+  isAdmin,
   onDashboard,
+  onAdminDashboard,
   onHome,
   onViewAllAuctions,
   onProductDetails,
   onHowItWorks,
-  activeNav,
+  activeLink,
   onActiveLinkChange,
 }) {
+  /* =========================================================
+     FILTER STATES
+  ========================================================= */
+
   const [search, setSearch] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [auctionType, setAuctionType] = useState("All Types");
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(10000000);
+
+  /* =========================================================
+     AUCTION DATA STATES
+  ========================================================= */
+
+  const [auctions, setAuctions] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  /* =========================================================
+     REAL-TIME CLOCK
+  ========================================================= */
+
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  /* =========================================================
+     FETCH ALL CATEGORIES
+  ========================================================= */
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCategories = async () => {
+      try {
+        const response = await getProductCategories();
+
+        const allCategories =
+          response?.data?.data ?? response?.data ?? response;
+
+        if (isMounted) {
+          setCategories(Array.isArray(allCategories) ? allCategories : []);
+        }
+      } catch (categoryError) {
+        console.error("Failed to fetch product categories:", categoryError);
+
+        if (isMounted) {
+          setCategories([]);
+        }
+      }
+    };
+
+    fetchCategories();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  /* =========================================================
+     FETCH ALL AUCTIONS + PRODUCT DETAILS
+  ========================================================= */
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchAuctions = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await getAllAuctions();
+
+        const allAuctions = response?.data?.data ?? response?.data ?? response;
+
+        const auctionList = Array.isArray(allAuctions) ? allAuctions : [];
+
+        const auctionsWithProducts = await Promise.all(
+          auctionList.map(async (auction) => {
+            try {
+              const productResponse = await getProductById(auction.productId);
+
+              const product =
+                productResponse?.data?.data ??
+                productResponse?.data ??
+                productResponse;
+
+              if (!product) {
+                return null;
+              }
+
+              const lifecycle = getAuctionCountdown(auction, Date.now());
+
+              return {
+                ...auction,
+
+                /* PRODUCT DETAILS */
+
+                product,
+                productId: product.productId ?? auction.productId,
+                image: product.imageUrl || "",
+                title:
+                  product.pname || auction.productTitle || "Untitled Product",
+                description: product.description || "",
+                seller: product.sellerName || product.sellerEmail || "Seller",
+                category: product.categoryName || "Uncategorized",
+                verified: product.isVerified === true,
+
+                /* AUCTION DETAILS */
+
+                id: auction.auctionId,
+
+                price:
+                  auction.currHighestBid ??
+                  auction.basePrice ??
+                  product.basePrice ??
+                  0,
+
+                /* REAL-TIME DISPLAY STATUS */
+
+                realTimeStatus: lifecycle.realTimeStatus,
+                type:
+                  lifecycle.realTimeStatus === "ACTIVE"
+                    ? "Live Auctions"
+                    : lifecycle.realTimeStatus === "SCHEDULED"
+                      ? "Scheduled Auctions"
+                      : "Ended Auctions",
+              };
+            } catch (productError) {
+              console.error(
+                `Failed to fetch product ${auction.productId}:`,
+                productError,
+              );
+
+              return null;
+            }
+          }),
+        );
+
+        if (isMounted) {
+          setAuctions(auctionsWithProducts.filter(Boolean));
+        }
+      } catch (fetchError) {
+        console.error("Failed to fetch all auctions:", fetchError);
+
+        if (isMounted) {
+          setError("Unable to load auctions. Please try again.");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchAuctions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   /* =========================================================
      CATEGORY FILTER
@@ -283,6 +280,35 @@ export default function AllAuction({
   const filteredAuctions = useMemo(() => {
     let result = [...auctions];
 
+    /* REAL-TIME STATUS FILTER */
+
+    result = result.filter((auction) => {
+      const lifecycle = getAuctionCountdown(auction, now);
+
+      if (lifecycle.realTimeStatus === "INVALID") {
+        return false;
+      }
+
+      // Hide ended auctions from all active listings.
+      if (lifecycle.realTimeStatus === "ENDED") {
+        return false;
+      }
+
+      if (auctionType === "Scheduled Auctions") {
+        return lifecycle.realTimeStatus === "SCHEDULED";
+      }
+
+      if (auctionType === "Live Auctions") {
+        return lifecycle.realTimeStatus === "ACTIVE";
+      }
+
+      // All Types shows scheduled + active auctions.
+      return (
+        lifecycle.realTimeStatus === "SCHEDULED" ||
+        lifecycle.realTimeStatus === "ACTIVE"
+      );
+    });
+
     /* SEARCH */
 
     if (search.trim()) {
@@ -290,9 +316,9 @@ export default function AllAuction({
 
       result = result.filter(
         (auction) =>
-          auction.title.toLowerCase().includes(value) ||
-          auction.seller.toLowerCase().includes(value) ||
-          auction.category.toLowerCase().includes(value),
+          auction.title?.toLowerCase().includes(value) ||
+          auction.seller?.toLowerCase().includes(value) ||
+          auction.category?.toLowerCase().includes(value),
       );
     }
 
@@ -307,33 +333,20 @@ export default function AllAuction({
     /* PRICE */
 
     result = result.filter(
-      (auction) => auction.price >= minPrice && auction.price <= maxPrice,
+      (auction) =>
+        Number(auction.price) >= minPrice && Number(auction.price) <= maxPrice,
     );
 
-    /* AUCTION TYPE */
-
-    if (auctionType !== "All Types") {
-      result = result.filter((auction) => auction.type === auctionType);
-    }
-
-    /* TIME CONVERTER */
-
-    const convertTime = (time) => {
-      const match = time.match(/(\d+)h\s+(\d+)m\s+(\d+)s/);
-
-      if (!match) return Infinity;
-
-      const [, hours, minutes, seconds] = match;
-
-      return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
-    };
-
     return result;
-  }, [search, selectedCategories, minPrice, maxPrice, auctionType]);
-
-  /* =========================================================
-     ALL FILTERED AUCTIONS
-  ========================================================= */
+  }, [
+    auctions,
+    search,
+    selectedCategories,
+    minPrice,
+    maxPrice,
+    auctionType,
+    now,
+  ]);
 
   const currentAuctions = filteredAuctions;
 
@@ -343,25 +356,27 @@ export default function AllAuction({
 
   return (
     <>
+      {/* HEADER */}
+
       <Header
         onLogin={onLogin}
         onLogout={onLogout}
         isLoggedIn={isLoggedIn}
         user={user}
+        isAdmin={isAdmin}
         onDashboard={onDashboard}
+        onAdminDashboard={onAdminDashboard}
         onHome={onHome}
         onViewAllAuctions={onViewAllAuctions}
         onHowItWorks={onHowItWorks}
-        activeLink={activeNav || "Auctions"}
+        activeLink={activeLink || "Auctions"}
         onActiveLinkChange={onActiveLinkChange}
       />
 
       <div className="all-auctions-page">
         <div className="all-auctions-container">
           <div className="auction-main">
-            {/* =================================================
-                LEFT FILTER SIDEBAR
-            ================================================= */}
+            {/* LEFT FILTER SIDEBAR */}
 
             <aside className="auction-sidebar">
               {/* CATEGORIES */}
@@ -373,27 +388,36 @@ export default function AllAuction({
                   <input
                     type="checkbox"
                     checked={selectedCategories.length === 0}
-                    onChange={() => {
-                      setSelectedCategories([]);
-                    }}
+                    onChange={() => setSelectedCategories([])}
                   />
 
                   <span className="category-name">All Categories</span>
                 </label>
 
-                {categories.map((category) => (
-                  <label className="filter-checkbox" key={category.name}>
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(category.name)}
-                      onChange={() => handleCategoryChange(category.name)}
-                    />
+                {categories.map((category) => {
+                  const categoryName = category.categoryName;
 
-                    <span className="category-name">{category.name}</span>
+                  const categoryCount = auctions.filter(
+                    (auction) => auction.category === categoryName,
+                  ).length;
 
-                    <span className="category-count">{category.count}</span>
-                  </label>
-                ))}
+                  return (
+                    <label
+                      className="filter-checkbox"
+                      key={category.categoryId}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedCategories.includes(categoryName)}
+                        onChange={() => handleCategoryChange(categoryName)}
+                      />
+
+                      <span className="category-name">{categoryName}</span>
+
+                      <span className="category-count">{categoryCount}</span>
+                    </label>
+                  );
+                })}
               </div>
 
               {/* PRICE RANGE */}
@@ -436,8 +460,9 @@ export default function AllAuction({
                 </div>
 
                 <div className="price-labels">
-                  <span>Min</span>
-                  <span>Max</span>
+                  <span>Min: ₹{minPrice.toLocaleString("en-IN")}</span>
+
+                  <span>Max: ₹{maxPrice.toLocaleString("en-IN")}</span>
                 </div>
               </div>
 
@@ -446,26 +471,21 @@ export default function AllAuction({
               <div className="filter-section">
                 <h3>AUCTION TYPE</h3>
 
-                {[
-                  "All Types",
-                  "Live Auctions",
-                  "Upcoming Auctions",
-                  "Ending Soon",
-                ].map((type) => (
-                  <label className="radio-option" key={type}>
-                    <input
-                      type="radio"
-                      name="auctionType"
-                      value={type}
-                      checked={auctionType === type}
-                      onChange={(e) => {
-                        setAuctionType(e.target.value);
-                      }}
-                    />
+                {["All Types", "Scheduled Auctions", "Live Auctions"].map(
+                  (type) => (
+                    <label className="radio-option" key={type}>
+                      <input
+                        type="radio"
+                        name="auctionType"
+                        value={type}
+                        checked={auctionType === type}
+                        onChange={(e) => setAuctionType(e.target.value)}
+                      />
 
-                    <span>{type}</span>
-                  </label>
-                ))}
+                      <span>{type}</span>
+                    </label>
+                  ),
+                )}
               </div>
 
               {/* CLEAR FILTERS */}
@@ -479,28 +499,73 @@ export default function AllAuction({
               </button>
             </aside>
 
-            {/* =================================================
-                AUCTION RESULTS
-            ================================================= */}
+            {/* AUCTION RESULTS */}
 
             <section className="auction-results">
-              {currentAuctions.length > 0 ? (
+              {/* LOADING */}
+
+              {loading ? (
+                <div className="no-auctions">
+                  <h3>Loading auctions...</h3>
+                  <p>Please wait while we fetch the auction details.</p>
+                </div>
+              ) : error ? (
+                /* ERROR */
+
+                <div className="no-auctions">
+                  <h3>Unable to load auctions</h3>
+                  <p>{error}</p>
+                </div>
+              ) : currentAuctions.length > 0 ? (
+                /* AUCTION CARDS */
+
                 <div className="auction-list">
-                  {currentAuctions.map((auction) => (
-                    <AuctionCard
-                      key={auction.id}
-                      image={auction.image}
-                      title={auction.title}
-                      seller={auction.seller}
-                      category={auction.category}
-                      timeLeft={auction.timeLeft}
-                      onProductClick={onProductDetails}
-                    />
-                  ))}
+                  {currentAuctions.map((auction) => {
+                    const countdown = getAuctionCountdown(auction, now);
+
+                    return (
+                      <AuctionCard
+                        key={auction.auctionId}
+                        auctionId={auction.auctionId}
+                        productId={auction.productId}
+                        image={auction.image}
+                        title={auction.title}
+                        seller={auction.seller}
+                        category={auction.category}
+                        description={auction.description}
+                        basePrice={auction.basePrice}
+                        currHighestBid={auction.currHighestBid}
+                        startTime={auction.startTime}
+                        endTime={auction.endTime}
+                        auctionStatus={countdown.realTimeStatus}
+                        product={auction.product}
+                        timeLeft={countdown.timeLeft}
+                        countdownLabel={countdown.countdownLabel}
+                        countdownStatus={countdown.countdownStatus}
+                        verified={auction.verified}
+                        onProductClick={() =>
+                          onProductDetails?.({
+                            ...auction.product,
+                            ...auction,
+                            productId: auction.productId,
+                            auctionId: auction.auctionId,
+                          })
+                        }
+                      />
+                    );
+                  })}
                 </div>
               ) : (
+                /* NO AUCTIONS */
+
                 <div className="no-auctions">
-                  <h3>No auctions found</h3>
+                  <h3>
+                    {auctionType === "Live Auctions"
+                      ? "No live auctions found"
+                      : auctionType === "Scheduled Auctions"
+                        ? "No scheduled auctions found"
+                        : "No auctions found"}
+                  </h3>
 
                   <p>Try changing your search or filter options.</p>
 

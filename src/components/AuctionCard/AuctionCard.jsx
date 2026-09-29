@@ -1,87 +1,124 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import "./AuctionCard.css";
 
+/* =========================================================
+   GET AUCTION COUNTDOWN
+========================================================= */
+
+const getAuctionCountdown = (startTime, endTime, now) => {
+  const startMs = startTime ? new Date(startTime).getTime() : NaN;
+  const endMs = endTime ? new Date(endTime).getTime() : NaN;
+
+  // Missing or invalid timestamps
+  if (
+    !Number.isFinite(startMs) ||
+    !Number.isFinite(endMs) ||
+    endMs <= startMs
+  ) {
+    return {
+      remainingSeconds: null,
+      status: "INVALID",
+    };
+  }
+
+  // Auction has not started
+  if (now < startMs) {
+    return {
+      remainingSeconds: Math.max(0, Math.floor((startMs - now) / 1000)),
+      status: "UPCOMING",
+    };
+  }
+
+  // Auction has ended
+  if (now >= endMs) {
+    return {
+      remainingSeconds: 0,
+      status: "ENDED",
+    };
+  }
+
+  // Auction is currently live
+  return {
+    remainingSeconds: Math.max(0, Math.floor((endMs - now) / 1000)),
+    status: "LIVE",
+  };
+};
+
+/* =========================================================
+   FORMAT COUNTDOWN
+========================================================= */
+
+const formatTime = (value) => {
+  if (value === null || value === undefined) {
+    return "--";
+  }
+
+  return String(value).padStart(2, "0");
+};
+
+/* =========================================================
+   AUCTION CARD
+========================================================= */
+
 export default function AuctionCard({
+  auctionId,
+  productId,
   image,
   title,
   seller,
   category,
-  timeLeft = "2h 15m",
+  description,
+  basePrice,
+  currHighestBid,
+  startTime,
+  endTime,
+  auctionStatus,
+  product,
+  timeLeft,
   imageCount = 5,
   verified = true,
   onProductClick,
 }) {
   /* =========================================================
-     CONVERT TIME LEFT INTO SECONDS
+     REAL-TIME CLOCK
   ========================================================= */
 
-  const initialSeconds = useMemo(() => {
-    if (typeof timeLeft === "number") {
-      return Math.max(0, timeLeft);
-    }
-
-    const value = String(timeLeft).toLowerCase().trim();
-
-    const hours = Number(value.match(/(\d+)\s*h/)?.[1] || 0);
-
-    const minutes = Number(value.match(/(\d+)\s*m/)?.[1] || 0);
-
-    const seconds = Number(value.match(/(\d+)\s*s/)?.[1] || 0);
-
-    return hours * 3600 + minutes * 60 + seconds;
-  }, [timeLeft]);
-
-  const [remainingSeconds, setRemainingSeconds] = useState(initialSeconds);
-
-  /* =========================================================
-     RESET WHEN TIME VALUE CHANGES
-  ========================================================= */
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    setRemainingSeconds(initialSeconds);
-  }, [initialSeconds]);
-
-  /* =========================================================
-     REAL-TIME COUNTDOWN
-  ========================================================= */
-
-  useEffect(() => {
-    if (remainingSeconds <= 0) {
-      return;
-    }
-
     const timer = setInterval(() => {
-      setRemainingSeconds((previous) => {
-        if (previous <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-
-        return previous - 1;
-      });
+      setNow(Date.now());
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [remainingSeconds]);
+  }, []);
 
   /* =========================================================
-     TIME CALCULATION
+     COUNTDOWN CALCULATION
   ========================================================= */
 
-  const hours = Math.floor(remainingSeconds / 3600);
+  const countdown = getAuctionCountdown(startTime, endTime, now);
 
-  const minutes = Math.floor((remainingSeconds % 3600) / 60);
+  const remainingSeconds = countdown.remainingSeconds;
 
-  const seconds = remainingSeconds % 60;
+  const hours =
+    remainingSeconds === null ? null : Math.floor(remainingSeconds / 3600);
 
-  const formatTime = (value) => String(value).padStart(2, "0");
+  const minutes =
+    remainingSeconds === null
+      ? null
+      : Math.floor((remainingSeconds % 3600) / 60);
+
+  const seconds = remainingSeconds === null ? null : remainingSeconds % 60;
 
   /* =========================================================
      SELLER INITIAL
   ========================================================= */
 
-  const sellerInitial = seller?.trim()?.charAt(0)?.toUpperCase() || "S";
+  const sellerInitial =
+    (typeof seller === "string" ? seller.trim().charAt(0).toUpperCase() : "") ||
+    "S";
 
   /* =========================================================
      OPEN PRODUCT DETAILS
@@ -93,15 +130,21 @@ export default function AuctionCard({
     }
 
     onProductClick({
+      auctionId,
+      productId,
       image,
       title,
       seller,
       category,
-      timeLeft,
-
-      // Pass the CURRENT countdown
+      description,
+      basePrice,
+      currHighestBid,
+      startTime,
+      endTime,
+      auctionStatus,
+      product,
+      timeLeft: remainingSeconds,
       remainingSeconds,
-
       imageCount,
       verified,
     });
@@ -118,6 +161,10 @@ export default function AuctionCard({
     }
   };
 
+  /* =========================================================
+     RETURN
+  ========================================================= */
+
   return (
     <article
       className="auction-card"
@@ -126,19 +173,26 @@ export default function AuctionCard({
       role="button"
       tabIndex={0}
     >
-      {/* =====================================================
-          PRODUCT IMAGE
-      ===================================================== */}
+      {/* PRODUCT IMAGE */}
 
       <div className="auction-image-wrapper">
-        <img src={image} alt={title} className="auction-image" />
+        {image ? (
+          <img
+            src={image}
+            alt={title || "Auction product"}
+            className="auction-image"
+          />
+        ) : (
+          <div className="auction-image auction-image-placeholder">
+            Image not available
+          </div>
+        )}
 
         {/* VERIFIED */}
 
         {verified && (
           <div className="auction-verified">
             <span className="verified-check">✓</span>
-
             <span>Verified</span>
           </div>
         )}
@@ -160,26 +214,29 @@ export default function AuctionCard({
 
         <div className="auction-image-count">
           <span className="image-count-icon">▧</span>
-
           <span>1 / {imageCount}</span>
         </div>
       </div>
 
-      {/* =====================================================
-          CARD CONTENT
-      ===================================================== */}
+      {/* CARD CONTENT */}
 
       <div className="auction-card-content">
+        {/* AUCTION ID */}
+
+        <div className="auction-id">
+          <span>Auction ID:</span>
+          <strong>{auctionId || "N/A"}</strong>
+        </div>
+
         {/* PRODUCT NAME */}
 
-        <h3 className="auction-title">{title}</h3>
+        <h3 className="auction-title">{title || "---"}</h3>
 
         {/* CATEGORY */}
 
         <div className="auction-category">
           <span className="category-icon">◉</span>
-
-          <span>{category}</span>
+          <span>{category || "---"}</span>
         </div>
 
         {/* SELLER */}
@@ -189,46 +246,32 @@ export default function AuctionCard({
 
           <div className="seller-details">
             <span className="seller-label">Seller</span>
-
-            <span className="seller-name">{seller}</span>
+            <span className="seller-name">{seller || "---"}</span>
           </div>
         </div>
 
-        {/* ===================================================
-            BOTTOM
-        =================================================== */}
+        {/* COUNTDOWN - NO LABEL */}
 
         <div className="auction-bottom">
-          {/* TIME LEFT */}
-
           <div className="auction-time">
             <div className="time-details">
               <div className="countdown">
-                {/* HOURS */}
-
                 <div className="countdown-box">
                   <strong>{formatTime(hours)}</strong>
-
                   <small>HH</small>
                 </div>
 
                 <span className="countdown-separator">:</span>
 
-                {/* MINUTES */}
-
                 <div className="countdown-box">
                   <strong>{formatTime(minutes)}</strong>
-
                   <small>MM</small>
                 </div>
 
                 <span className="countdown-separator">:</span>
 
-                {/* SECONDS */}
-
                 <div className="countdown-box">
                   <strong>{formatTime(seconds)}</strong>
-
                   <small>SS</small>
                 </div>
               </div>

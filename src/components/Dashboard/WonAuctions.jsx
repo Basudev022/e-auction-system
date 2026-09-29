@@ -1,31 +1,71 @@
-const wonAuctions = [
-  {
-    id: 1,
-    name: "Vintage Landscape Painting",
-    image:
-      "https://images.unsplash.com/photo-1577083552431-6e5fd01988a5?auto=format&fit=crop&w=300&q=80",
-    price: "₹25,500",
-    date: "Won on 12 May 2024",
-  },
-  {
-    id: 2,
-    name: "Canon EOS R5 Camera",
-    image:
-      "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=300&q=80",
-    price: "₹1,25,000",
-    date: "Won on 10 May 2024",
-  },
-  {
-    id: 3,
-    name: "Diamond Necklace",
-    image:
-      "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=300&q=80",
-    price: "₹3,25,000",
-    date: "Won on 05 May 2024",
-  },
-];
+import { useEffect, useState } from "react";
+import { getHighestBidForAuction } from "../../api/bid/bidApi";
+import { getMyOrders } from "../../api/order/orderApi";
 
 function WonAuctions() {
+  const [wonAuctions, setWonAuctions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWonAuctions = async () => {
+      try {
+        // 1. Fetch orders belonging to the logged-in buyer
+        const response = await getMyOrders();
+
+        const orders = Array.isArray(response)
+          ? response
+          : response?.data || response?.content || [];
+
+        // 2. Fetch the highest bid for each auction
+        const auctionsWithWinner = await Promise.all(
+          orders.map(async (order) => {
+            try {
+              const bidResponse = await getHighestBidForAuction(
+                order.auctionId,
+              );
+
+              const highestBid =
+                bidResponse?.data || bidResponse?.content || bidResponse;
+
+              // 3. Extract the winning bidder's user ID
+              const winnerUserId =
+                highestBid?.userId ??
+                highestBid?.buyerId ??
+                highestBid?.bidder?.userId ??
+                highestBid?.buyer?.userId ??
+                highestBid?.user?.userId ??
+                null;
+
+              return {
+                ...order,
+                winnerUserId,
+              };
+            } catch (error) {
+              console.error(
+                `Failed to fetch highest bid for auction ${order.auctionId}:`,
+                error,
+              );
+
+              return {
+                ...order,
+                winnerUserId: null,
+              };
+            }
+          }),
+        );
+
+        setWonAuctions(auctionsWithWinner);
+      } catch (error) {
+        console.error("Failed to fetch won auctions:", error);
+        setWonAuctions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWonAuctions();
+  }, []);
+
   return (
     <div className="dashboard-card" id="won-auctions">
       <div className="card-header">
@@ -34,17 +74,49 @@ function WonAuctions() {
       </div>
 
       <div className="won-list">
-        {wonAuctions.map((item) => (
-          <div className="won-item" key={item.id}>
-            <img src={item.image} alt={item.name} />
+        {loading ? (
+          <p>Loading won auctions...</p>
+        ) : wonAuctions.length === 0 ? (
+          <p>No won auctions found.</p>
+        ) : (
+          wonAuctions.map((item) => (
+            <div className="won-item" key={item.orderId}>
+              <img
+                src={
+                  item.productImage ||
+                  item.image ||
+                  item.product?.imageUrl ||
+                  item.product?.image ||
+                  ""
+                }
+                alt={item.auctionTitle || "Auction"}
+              />
 
-            <div>
-              <h3>{item.name}</h3>
-              <strong>{item.price}</strong>
-              <p>{item.date}</p>
+              <div>
+                <h3>{item.auctionTitle || "---"}</h3>
+
+                <strong>
+                  {item.winningAmount != null
+                    ? `₹${Number(item.winningAmount).toLocaleString("en-IN")}`
+                    : "---"}
+                </strong>
+
+                <p>
+                  {item.orderDate
+                    ? `Won on ${new Date(item.orderDate).toLocaleDateString(
+                        "en-IN",
+                        {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        },
+                      )}`
+                    : "Date unavailable"}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
