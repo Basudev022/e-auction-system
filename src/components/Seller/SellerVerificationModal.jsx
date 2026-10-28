@@ -20,10 +20,7 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
   const [verificationComplete, setVerificationComplete] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ==========================================
   // TERMS SCROLL
-  // ==========================================
-
   const handleTermsScroll = (event) => {
     const element = event.target;
 
@@ -35,10 +32,7 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
     }
   };
 
-  // ==========================================
   // PRIVACY SCROLL
-  // ==========================================
-
   const handlePrivacyScroll = (event) => {
     const element = event.target;
 
@@ -50,10 +44,7 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
     }
   };
 
-  // ==========================================
   // DOCUMENT TYPE CHANGE
-  // ==========================================
-
   const handleDocumentTypeChange = (event) => {
     setDocumentType(event.target.value);
     setDocumentNumber("");
@@ -66,10 +57,7 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
     setMessageType("");
   };
 
-  // ==========================================
   // DOCUMENT NUMBER CHANGE
-  // ==========================================
-
   const handleDocumentNumberChange = (event) => {
     let value = event.target.value;
 
@@ -95,10 +83,7 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
     setMessageType("");
   };
 
-  // ==========================================
   // VALIDATE DOCUMENT
-  // ==========================================
-
   const validateDocument = () => {
     if (documentType === "PAN_CARD") {
       const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
@@ -113,10 +98,7 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
     return false;
   };
 
-  // ==========================================
   // VERIFY DOCUMENT NUMBER
-  // ==========================================
-
   const handleVerifyNumber = () => {
     if (!termsRead || !privacyRead) {
       setMessage(
@@ -162,20 +144,13 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
     setMessageType("success");
   };
 
-  // ==========================================
   // OTP CHANGE
-  // ==========================================
-
   const handleOtpChange = (event) => {
     const value = event.target.value.replace(/\D/g, "").slice(0, 6);
-
     setOtp(value);
   };
 
-  // ==========================================
   // VERIFY OTP
-  // ==========================================
-
   const handleVerifyOtp = () => {
     if (otp.length !== 6) {
       setMessage("Please enter the 6-digit OTP.");
@@ -192,10 +167,7 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
     setMessageType("success");
   };
 
-  // ==========================================
   // SUBMIT KYC REQUEST TO BACKEND
-  // ==========================================
-
   const handleVerifyRequest = async () => {
     if (!termsRead || !privacyRead) {
       setMessage("Please read all Terms & Conditions and Privacy Policy.");
@@ -263,10 +235,7 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
     }
   };
 
-  // ==========================================
   // BUTTON CONDITIONS
-  // ==========================================
-
   const canAcceptTerms = termsRead && privacyRead;
 
   const canVerifyNumber =
@@ -289,17 +258,19 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
       ? documentNumber.replace(/\s/g, "").length
       : 0;
 
-  // ==========================================
-  // RENDER
-  // ==========================================
+  // CLOSE ONLY WHEN THE OVERLAY ITSELF IS CLICKED
+  const handleOverlayMouseDown = (event) => {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  };
 
+  // RENDER
   return (
-    <div className="seller-modal-overlay">
+    <div className="seller-modal-overlay" onMouseDown={handleOverlayMouseDown}>
       <div className="seller-modal">
         {verificationComplete ? (
-          // ==================================
           // KYC SUBMISSION SUCCESS
-          // ==================================
           <div className="seller-verification-success">
             <div className="seller-success-icon">✓</div>
 
@@ -325,7 +296,6 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
         ) : (
           <>
             {/* CLOSE BUTTON */}
-
             <button
               type="button"
               className="seller-modal-close"
@@ -336,7 +306,6 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
             </button>
 
             {/* HEADER */}
-
             <div className="seller-modal-header">
               <h2>Become A Seller</h2>
 
@@ -347,10 +316,7 @@ export default function SellerVerificationModal({ onClose, onSellerVerified }) {
             </div>
 
             {/* POLICIES */}
-
             <div className="seller-policy-grid">
-              {/* TERMS AND CONDITIONS */}
-
               <div className="seller-policy-section">
                 <h3>Terms &amp; Conditions</h3>
 
@@ -399,8 +365,6 @@ eAuction may update these terms when necessary. Continued use of seller services
                     : "Scroll to read all terms"}
                 </div>
               </div>
-
-              {/* PRIVACY POLICY */}
 
               <div className="seller-policy-section">
                 <h3>Privacy Policy</h3>
@@ -455,7 +419,6 @@ This privacy policy may be updated from time to time to reflect changes in our s
             </div>
 
             {/* AGREEMENT */}
-
             <label
               className={`seller-agreement ${
                 !canAcceptTerms ? "disabled" : ""
@@ -476,7 +439,6 @@ This privacy policy may be updated from time to time to reflect changes in our s
             </label>
 
             {/* DOCUMENT SECTION */}
-
             <div className="seller-document-section">
               <div className="seller-field">
                 <label htmlFor="documentType">Select Document</label>
@@ -540,7 +502,6 @@ This privacy policy may be updated from time to time to reflect changes in our s
             </div>
 
             {/* VERIFY DOCUMENT */}
-
             {!documentVerified && (
               <button
                 type="button"
@@ -553,13 +514,11 @@ This privacy policy may be updated from time to time to reflect changes in our s
             )}
 
             {/* VERIFIED BADGE */}
-
             {documentVerified && (
               <div className="verified-badge">✓ Verified</div>
             )}
 
             {/* MESSAGE */}
-
             {message && (
               <div className={`seller-verification-message ${messageType}`}>
                 {message}
@@ -567,7 +526,6 @@ This privacy policy may be updated from time to time to reflect changes in our s
             )}
 
             {/* OTP SECTION */}
-
             {otpSent && (
               <div className="seller-otp-section">
                 <div className="seller-otp-content">
@@ -598,7 +556,6 @@ This privacy policy may be updated from time to time to reflect changes in our s
             )}
 
             {/* SUBMIT KYC REQUEST */}
-
             <div className="seller-modal-footer">
               <button
                 type="button"

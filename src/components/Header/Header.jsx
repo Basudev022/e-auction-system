@@ -444,7 +444,7 @@ export default function Header({
           Auctions
         </a>
 
-        <a
+        {/* <a
           href="/how-it-works"
           className={`nav-link ${
             activeLink === "How It Works" ? "active" : ""
@@ -452,7 +452,7 @@ export default function Header({
           onClick={(event) => handleNavClick(event, "How It Works")}
         >
           How It Works
-        </a>
+        </a> */}
 
         <a
           href="/support"
@@ -539,18 +539,18 @@ export default function Header({
                   className="profile-menu-item"
                   onClick={handleDashboard}
                 >
-                  Dashboard
+                  My Dashboard
                 </button>
               )}
 
               {/* ACCOUNT SETTINGS */}
-              <button
+              {/* <button
                 type="button"
                 className="profile-menu-item"
                 onClick={handleAccountSettings}
               >
                 Account Settings
-              </button>
+              </button> */}
 
               {/* LOGOUT */}
               <button

@@ -1,8 +1,8 @@
 import axiosClient from "../axiosClient";
 
-// ==========================================
+//
 // PAYMENT APIs
-// ==========================================
+//
 
 // 1. Process a payment
 // POST /api/v1/payments/process

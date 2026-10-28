@@ -1,8 +1,8 @@
 import axiosClient from "../axiosClient";
 
-/* ==========================================
+/* 
    CREATE AUCTION
-========================================== */
+ */
 
 // CREATE AUCTION (SELLER)
 export const createAuction = async (auctionData) => {
@@ -19,9 +19,9 @@ export const createAuction = async (auctionData) => {
   }
 };
 
-/* ==========================================
+/* 
    GET AUCTIONS
-========================================== */
+ */
 
 // GET ALL AUCTIONS
 export const getAllAuctions = async () => {
@@ -64,9 +64,9 @@ export const getAuctionById = async (auctionId) => {
   return response.data;
 };
 
-/* ==========================================
+/* 
    UPDATE AUCTIONS
-========================================== */
+ */
 
 // CANCEL AUCTION (SELLER)
 export const cancelAuction = async (auctionId) => {

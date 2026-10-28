@@ -37,18 +37,30 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
   );
 
   const [showPassword, setShowPassword] = useState(false);
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // Field validation
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+
+  // null = Admin, buyer = Buyer, seller = Seller
+  const [loginType, setLoginType] = useState(null);
+
   // ==========================================
-  // LOGIN TYPE
-  // null = Admin login
-  // buyer = Buyer login
-  // seller = Seller login
+  // EMAIL VALIDATION
   // ==========================================
 
-  const [loginType, setLoginType] = useState(null);
+  const validateEmail = (value) => {
+    if (!value.trim()) return "";
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
+      return "Enter a valid email address.";
+    }
+
+    return "";
+  };
 
   // ==========================================
   // PREFILL REGISTERED EMAIL
@@ -87,6 +99,10 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
       dispatch(clearAuthError());
     }
 
+    setFieldErrors({});
+    setTouched({});
+    setSubmitted(false);
+
     if (type === "seller") {
       const sellerEmail = localStorage.getItem("sellerEmail");
 
@@ -104,6 +120,41 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
   };
 
   // ==========================================
+  // EMAIL BLUR VALIDATION
+  // ==========================================
+
+  const handleEmailBlur = () => {
+    setTouched((prev) => ({ ...prev, email: true }));
+
+    if (!email.trim()) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        email: submitted ? "Email address is required." : "",
+      }));
+
+      return;
+    }
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      email: validateEmail(email),
+    }));
+  };
+
+  // ==========================================
+  // PASSWORD BLUR VALIDATION
+  // ==========================================
+
+  const handlePasswordBlur = () => {
+    setTouched((prev) => ({ ...prev, password: true }));
+
+    setFieldErrors((prev) => ({
+      ...prev,
+      password: !password ? (submitted ? "Password is required." : "") : "",
+    }));
+  };
+
+  // ==========================================
   // LOGIN
   // ==========================================
 
@@ -111,11 +162,22 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
     event.preventDefault();
 
     // ========================================
-    // CHECK REQUIRED FIELDS
+    // REQUIRED FIELD VALIDATION
     // ========================================
 
-    if (!email.trim() || !password) {
-      dispatch(loginFailure("Email and password are required."));
+    setSubmitted(true);
+
+    const nextErrors = {
+      email: !email.trim()
+        ? "Email address is required."
+        : validateEmail(email),
+      password: !password ? "Password is required." : "",
+    };
+
+    setFieldErrors(nextErrors);
+    setTouched({ email: true, password: true });
+
+    if (Object.values(nextErrors).some(Boolean)) {
       return;
     }
 
@@ -142,23 +204,15 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
 
       // ======================================
       // ADMIN LOGIN
-      // No Buyer/Seller radio selected
+      // EXISTING LOGIC PRESERVED
       // ======================================
 
       if (loginType === null) {
         const response = await adminLogin(loginData);
 
-        // ====================================
-        // ADMIN LOGIN SUCCESS
-        // ====================================
-
         dispatch(loginSuccess(response));
 
         localStorage.setItem("loginType", "admin");
-
-        // ====================================
-        // REDIRECT TO ADMIN DASHBOARD
-        // ====================================
 
         if (onLoginSuccess) {
           onLoginSuccess("admin");
@@ -172,6 +226,18 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
       // ======================================
 
       const response = await loginUser(loginData);
+
+      // Handle explicit failure responses.
+      // Applies only to Buyer/Seller login.
+      if (
+        response?.success === false ||
+        response?.authenticated === false ||
+        response?.status === 401 ||
+        response?.status === 403
+      ) {
+        dispatch(loginFailure("Login failed. Please use valid credentials."));
+        return;
+      }
 
       // ======================================
       // GET USER ROLE FROM BACKEND
@@ -272,9 +338,6 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
       // ======================================
 
       if (onLoginSuccess) {
-        // Preserve the selected login dashboard.
-        // Buyer login opens Buyer Dashboard,
-        // even when the backend role is SELLER.
         onLoginSuccess(loginType);
       }
     } catch (error) {
@@ -290,38 +353,30 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
       console.error("=================================");
 
       // ======================================
-      // DEFAULT ERROR MESSAGE
+      // ERROR MESSAGE
       // ======================================
 
-      let errorMessage = "Login failed.";
+      let errorMessage = "Login failed. Please use valid credentials.";
 
-      // ======================================
-      // GET ACTUAL BACKEND ERROR
-      // ======================================
+      const status = error.response?.status;
+      const responseData = error.response?.data;
 
-      if (error.response?.data) {
-        // Backend returned plain text
-        if (typeof error.response.data === "string") {
-          errorMessage = error.response.data;
+      // The backend currently maps:
+      // 400 = InvalidOperationException
+      // 404 = ResourceNotFoundException
+      // 401 = Unauthorized
+      // 403 = Forbidden
+
+      if ([400, 401, 403, 404].includes(status)) {
+        errorMessage = "Login failed. Please use valid credentials.";
+      } else if (responseData) {
+        if (typeof responseData === "string") {
+          errorMessage = responseData;
+        } else if (responseData.message) {
+          errorMessage = responseData.message;
+        } else if (responseData.error) {
+          errorMessage = responseData.error;
         }
-
-        // Backend returned { message: "..." }
-        else if (error.response.data.message) {
-          errorMessage = error.response.data.message;
-        }
-
-        // Backend returned { error: "..." }
-        else if (error.response.data.error) {
-          errorMessage = error.response.data.error;
-        }
-
-        // Backend returned another JSON object
-        else {
-          errorMessage = JSON.stringify(error.response.data);
-        }
-      } else if (error.message) {
-        // Network / Axios error
-        errorMessage = error.message;
       }
 
       // ======================================
@@ -337,10 +392,23 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
   // ==========================================
 
   const handleEmailChange = (event) => {
-    setEmail(event.target.value);
+    const value = event.target.value;
+
+    setEmail(value);
 
     if (error) {
       dispatch(clearAuthError());
+    }
+
+    if (touched.email || submitted) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        email: !value.trim()
+          ? submitted
+            ? "Email address is required."
+            : ""
+          : validateEmail(value),
+      }));
     }
   };
 
@@ -349,10 +417,19 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
   // ==========================================
 
   const handlePasswordChange = (event) => {
-    setPassword(event.target.value);
+    const value = event.target.value;
+
+    setPassword(value);
 
     if (error) {
       dispatch(clearAuthError());
+    }
+
+    if (touched.password || submitted) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        password: !value ? (submitted ? "Password is required." : "") : "",
+      }));
     }
   };
 
@@ -373,11 +450,13 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
       "http://localhost:8080/oauth2/authorization/facebook";
   };
 
+  // ==========================================
+  // RENDER
+  // ==========================================
+
   return (
     <div className="auth-form-container">
-      {/* =========================
-          TITLE
-      ========================= */}
+      {/* TITLE */}
 
       <div className="form-title">
         <h1>Sign in to your account</h1>
@@ -385,9 +464,7 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
       </div>
 
       <form onSubmit={handleLogin}>
-        {/* =========================
-            LOGIN TYPE
-        ========================= */}
+        {/* LOGIN TYPE */}
 
         <div className="login-type-options">
           <label className="login-type-option">
@@ -417,9 +494,7 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
           </label>
         </div>
 
-        {/* =========================
-            EMAIL
-        ========================= */}
+        {/* EMAIL */}
 
         <div className="input-group">
           <label htmlFor="login-email">Email address</label>
@@ -436,14 +511,19 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
               autoComplete="email"
               value={email}
               onChange={handleEmailChange}
+              onBlur={handleEmailBlur}
               disabled={isLoading}
             />
           </div>
+
+          {fieldErrors.email && (
+            <p className="validation-error" role="alert">
+              {fieldErrors.email}
+            </p>
+          )}
         </div>
 
-        {/* =========================
-            PASSWORD
-        ========================= */}
+        {/* PASSWORD */}
 
         <div className="input-group">
           <label htmlFor="login-password">Password</label>
@@ -460,6 +540,7 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
               autoComplete="current-password"
               value={password}
               onChange={handlePasswordChange}
+              onBlur={handlePasswordBlur}
               disabled={isLoading}
             />
 
@@ -474,17 +555,19 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
           </div>
+
+          {fieldErrors.password && (
+            <p className="validation-error" role="alert">
+              {fieldErrors.password}
+            </p>
+          )}
         </div>
 
-        {/* =========================
-            ERROR MESSAGE
-        ========================= */}
+        {/* BACKEND / LOGIN ERROR */}
 
         {error && <div className="auth-error-message">{error}</div>}
 
-        {/* =========================
-            REMEMBER / FORGOT
-        ========================= */}
+        {/* REMEMBER / FORGOT */}
 
         <div className="login-options">
           <label className="remember">
@@ -497,17 +580,13 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
           </button>
         </div>
 
-        {/* =========================
-            LOGIN BUTTON
-        ========================= */}
+        {/* LOGIN BUTTON */}
 
         <button type="submit" className="primary-button" disabled={isLoading}>
           {isLoading ? "Signing in..." : "Sign in"}
         </button>
 
-        {/* =========================
-            DIVIDER
-        ========================= */}
+        {/* DIVIDER */}
 
         <div className="divider">
           <span />
@@ -515,13 +594,9 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
           <span />
         </div>
 
-        {/* =========================
-            GOOGLE / FACEBOOK
-        ========================= */}
+        {/* GOOGLE / FACEBOOK */}
 
         <div className="social-buttons">
-          {/* GOOGLE */}
-
           <button
             type="button"
             className="social-button"
@@ -531,8 +606,6 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
             <span className="google-logo">G</span>
             <span>Continue with Google</span>
           </button>
-
-          {/* FACEBOOK */}
 
           <button
             type="button"
@@ -545,9 +618,7 @@ export default function LoginForm({ setActiveTab, onLoginSuccess }) {
           </button>
         </div>
 
-        {/* =========================
-            REGISTER LINK
-        ========================= */}
+        {/* REGISTER LINK */}
 
         <div className="switch-account">
           <span>Don't have an account?</span>

@@ -11,9 +11,9 @@ import {
 
 import "./AllAuction.css";
 
-/* =========================================================
+/* 
    GET AUCTION LIFECYCLE
-========================================================= */
+ */
 
 const getAuctionCountdown = (auction, now) => {
   const startMs = auction?.startTime
@@ -61,9 +61,9 @@ const getAuctionCountdown = (auction, now) => {
   };
 };
 
-/* =========================================================
+/* 
    ALL AUCTIONS PAGE
-========================================================= */
+ */
 
 export default function AllAuction({
   onLogin,
@@ -80,9 +80,9 @@ export default function AllAuction({
   activeLink,
   onActiveLinkChange,
 }) {
-  /* =========================================================
+  /* 
      FILTER STATES
-  ========================================================= */
+   */
 
   const [search, setSearch] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -90,18 +90,18 @@ export default function AllAuction({
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(10000000);
 
-  /* =========================================================
+  /* 
      AUCTION DATA STATES
-  ========================================================= */
+   */
 
   const [auctions, setAuctions] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  /* =========================================================
+  /* 
      REAL-TIME CLOCK
-  ========================================================= */
+   */
 
   const [now, setNow] = useState(() => Date.now());
 
@@ -113,9 +113,9 @@ export default function AllAuction({
     return () => clearInterval(timer);
   }, []);
 
-  /* =========================================================
+  /* 
      FETCH ALL CATEGORIES
-  ========================================================= */
+   */
 
   useEffect(() => {
     let isMounted = true;
@@ -146,9 +146,9 @@ export default function AllAuction({
     };
   }, []);
 
-  /* =========================================================
+  /* 
      FETCH ALL AUCTIONS + PRODUCT DETAILS
-  ========================================================= */
+   */
 
   useEffect(() => {
     let isMounted = true;
@@ -249,9 +249,9 @@ export default function AllAuction({
     };
   }, []);
 
-  /* =========================================================
+  /* 
      CATEGORY FILTER
-  ========================================================= */
+   */
 
   const handleCategoryChange = (category) => {
     setSelectedCategories((prev) =>
@@ -261,9 +261,9 @@ export default function AllAuction({
     );
   };
 
-  /* =========================================================
+  /* 
      CLEAR FILTERS
-  ========================================================= */
+   */
 
   const clearFilters = () => {
     setSearch("");
@@ -273,9 +273,9 @@ export default function AllAuction({
     setMaxPrice(10000000);
   };
 
-  /* =========================================================
+  /* 
      FILTER + SORT
-  ========================================================= */
+   */
 
   const filteredAuctions = useMemo(() => {
     let result = [...auctions];
@@ -350,9 +350,9 @@ export default function AllAuction({
 
   const currentAuctions = filteredAuctions;
 
-  /* =========================================================
+  /* 
      RETURN
-  ========================================================= */
+   */
 
   return (
     <>
