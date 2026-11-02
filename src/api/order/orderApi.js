@@ -45,3 +45,12 @@ export const updateOrderStatus = async (orderId, status) => {
   );
   return response.data;
 };
+
+// 5. Get status history for a specific order
+// GET /api/v1/orders/{orderId}/history
+// Access: BUYER, SELLER, ADMIN
+export const getOrderStatusHistory = async (orderId) => {
+  const response = await axiosClient.get(`/orders/${orderId}/history`);
+
+  return response.data;
+};

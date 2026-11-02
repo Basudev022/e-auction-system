@@ -199,13 +199,21 @@ export default function App() {
   //
 
   const handleLiveAuction = (auction = selectedProduct) => {
-    if (!auction) return;
+    if (!auction) {
+      console.error("Cannot open live auction: no auction was provided.");
+      return;
+    }
 
-    const auctionId = auction.auctionId;
+    // Use the auction ID, not the product ID, for the live-auction route.
+    const auctionId =
+      auction.auctionId ??
+      auction.auction?.auctionId ??
+      auction.auction?.id ??
+      auction.id;
 
-    if (auctionId == null) {
+    if (auctionId == null || String(auctionId).trim() === "") {
       console.error(
-        "Cannot open live auction: auction ID is missing.",
+        "Cannot open live auction: auctionId is missing from the selected auction.",
         auction,
       );
       return;
@@ -214,7 +222,7 @@ export default function App() {
     setSelectedProduct(auction);
     setActiveNav("");
 
-    goTo(`/live-auction/${auctionId}`, {
+    goTo(`/live-auction/${encodeURIComponent(String(auctionId))}`, {
       state: { product: auction },
     });
   };
@@ -477,16 +485,15 @@ function ProductDetailsRoute({
   const location = useLocation();
   const { productId } = useParams();
 
-  const product = location.state?.product || selectedProduct;
+  const product = location.state?.product ?? selectedProduct;
 
-  if (!product) {
-    return <ProductDetails {...headerProps} onLiveAuction={onLiveAuction} />;
-  }
-
+  // Pass productId even on a direct page refresh/open, so ProductDetails can
+  // load the product when navigation state is not available.
   return (
     <ProductDetails
       {...headerProps}
       product={product}
+      productId={productId}
       onLiveAuction={onLiveAuction}
     />
   );
@@ -500,8 +507,10 @@ function LiveAuctionRoute({ selectedProduct, onBack, ...headerProps }) {
   const { auctionId } = useParams();
   const location = useLocation();
 
-  const product = location.state?.product || selectedProduct;
+  const product = location.state?.product ?? selectedProduct;
 
+  // LiveAuction can fetch the auction by auctionId, even if the user opens
+  // or refreshes this URL without navigation state.
   return (
     <LiveAuction
       {...headerProps}

@@ -113,3 +113,13 @@ export const deleteProduct = async (productId) => {
   const response = await axiosClient.delete(`/products/${productId}/delete`);
   return response.data;
 };
+
+// 14. Get products by category name
+// GET /api/v1/products/category/name/{categoryName}
+export const getProductsByCategoryName = async (categoryName) => {
+  const response = await axiosClient.get(
+    `/products/category/name/${encodeURIComponent(categoryName)}`,
+  );
+
+  return response.data;
+};

@@ -1584,3 +1584,65 @@
     grid-template-columns: 1fr;
   }
 }
+
+/*
+   ENTER LIVE AUCTION
+   Matches the Register button dimensions and typography.
+ */
+
+.enter-auction-button {
+  width: 100%;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  margin-top: 20px;
+  padding: 13px 18px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #dc2626;
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.enter-auction-button:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+.enter-auction-button:active {
+  transform: translateY(0);
+}
+
+.enter-auction-button:disabled {
+  background: #fca5a5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.enter-auction-button span:last-child {
+  font-size: 16px;
+  line-height: 1;
+}
+/* LIVE AUCTION — RED TIME LEFT */
+.product-auction-box:has(.enter-auction-button) .product-countdown {
+  background: #fee2e2;
+}
+
+.product-auction-box:has(.enter-auction-button) .product-countdown strong,
+.product-auction-box:has(.enter-auction-button) .product-countdown b {
+  color: #dc2626;
+}

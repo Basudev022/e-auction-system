@@ -1,4 +1,7 @@
-/* Auction card */
+/* =========================================
+   AUCTION CARD
+========================================= */
+
 .auction-card {
   width: 100%;
   min-width: 0;
@@ -18,7 +21,10 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.09);
 }
 
-/* Product image */
+/* =========================================
+   PRODUCT IMAGE
+========================================= */
+
 .auction-image-wrapper {
   position: relative;
   width: 100%;
@@ -40,7 +46,10 @@
   transform: none;
 }
 
-/* Verified badge */
+/* =========================================
+   VERIFIED BADGE
+========================================= */
+
 .auction-verified {
   position: absolute;
   top: 8px;
@@ -70,7 +79,10 @@
   font-weight: 800;
 }
 
-/* Wishlist */
+/* =========================================
+   WISHLIST
+========================================= */
+
 .auction-wishlist {
   position: absolute;
   top: 8px;
@@ -96,7 +108,10 @@
   transform: scale(1.08);
 }
 
-/* Image count */
+/* =========================================
+   IMAGE COUNT
+========================================= */
+
 .auction-image-count {
   position: absolute;
   right: 8px;
@@ -116,12 +131,16 @@
   font-size: 10px;
 }
 
-/* Card content */
+/* =========================================
+   CARD CONTENT
+========================================= */
+
 .auction-card-content {
   padding: 10px;
 }
 
 /* Auction ID */
+
 .auction-id {
   display: flex;
   align-items: center;
@@ -141,6 +160,7 @@
 }
 
 /* Product title */
+
 .auction-title {
   margin: 0;
   color: #151b19;
@@ -152,7 +172,10 @@
   text-overflow: ellipsis;
 }
 
-/* Category */
+/* =========================================
+   CATEGORY
+========================================= */
+
 .auction-category {
   width: fit-content;
   display: flex;
@@ -171,7 +194,10 @@
   font-size: 7px;
 }
 
-/* Seller */
+/* =========================================
+   SELLER
+========================================= */
+
 .auction-seller {
   display: flex;
   align-items: center;
@@ -217,7 +243,10 @@
   text-overflow: ellipsis;
 }
 
-/* Bottom section */
+/* =========================================
+   BOTTOM SECTION
+========================================= */
+
 .auction-bottom {
   display: flex;
   align-items: center;
@@ -228,7 +257,8 @@
   border-top: 1px solid #dfe7e3;
 }
 
-/* Time */
+/* Time container */
+
 .auction-time {
   min-width: 0;
   display: flex;
@@ -238,13 +268,18 @@
 }
 
 /* Time details */
+
 .time-details {
   min-width: 0;
   display: flex;
   flex-direction: column;
 }
 
-/* Countdown */
+/* =========================================
+   COUNTDOWN
+   Used by regular auction cards
+========================================= */
+
 .countdown {
   display: flex;
   align-items: center;
@@ -283,7 +318,62 @@
   font-weight: 800;
 }
 
-/* Tablet */
+/* =========================================
+   LIVE BADGE
+   Used only in Explore Live Auctions
+========================================= */
+
+.auction-live-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background-color: #e53935;
+  color: #ffffff;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* White pulsing indicator */
+
+.auction-live-indicator {
+  width: 7px;
+  height: 7px;
+  display: inline-block;
+  flex-shrink: 0;
+  background-color: #ffffff;
+  border-radius: 50%;
+  animation: auction-live-pulse 1.5s infinite;
+}
+
+/* Live pulse animation */
+
+@keyframes auction-live-pulse {
+  0% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5);
+  }
+
+  70% {
+    opacity: 0.8;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0);
+  }
+
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+}
+
+/* =========================================
+   TABLET
+========================================= */
+
 @media (max-width: 900px) {
   .auction-image-wrapper {
     height: 155px;
@@ -298,7 +388,10 @@
   }
 }
 
-/* Mobile */
+/* =========================================
+   MOBILE
+========================================= */
+
 @media (max-width: 600px) {
   .auction-image-wrapper {
     height: 150px;
@@ -346,9 +439,23 @@
   .countdown-box {
     min-width: 21px;
   }
+
+  .auction-live-badge {
+    padding: 5px 9px;
+    font-size: 10px;
+    gap: 5px;
+  }
+
+  .auction-live-indicator {
+    width: 6px;
+    height: 6px;
+  }
 }
 
-/* Small mobile */
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
 @media (max-width: 420px) {
   .auction-image-wrapper {
     height: 170px;
@@ -365,9 +472,17 @@
   .auction-bottom {
     align-items: center;
   }
+
+  .auction-live-badge {
+    padding: 5px 8px;
+    font-size: 10px;
+  }
 }
 
-/* Similar products grid */
+/* =========================================
+   SIMILAR PRODUCTS GRID
+========================================= */
+
 .similar-products-grid .auction-bottom {
   justify-content: center;
 }

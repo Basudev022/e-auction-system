@@ -6,7 +6,6 @@ const getAuctionCountdown = (startTime, endTime, now) => {
   const startMs = startTime ? new Date(startTime).getTime() : NaN;
   const endMs = endTime ? new Date(endTime).getTime() : NaN;
 
-  // Missing or invalid timestamps
   if (
     !Number.isFinite(startMs) ||
     !Number.isFinite(endMs) ||
@@ -18,7 +17,6 @@ const getAuctionCountdown = (startTime, endTime, now) => {
     };
   }
 
-  // Auction has not started
   if (now < startMs) {
     return {
       remainingSeconds: Math.max(0, Math.floor((startMs - now) / 1000)),
@@ -26,7 +24,6 @@ const getAuctionCountdown = (startTime, endTime, now) => {
     };
   }
 
-  // Auction has ended
   if (now >= endMs) {
     return {
       remainingSeconds: 0,
@@ -34,7 +31,6 @@ const getAuctionCountdown = (startTime, endTime, now) => {
     };
   }
 
-  // Auction is currently live
   return {
     remainingSeconds: Math.max(0, Math.floor((endMs - now) / 1000)),
     status: "LIVE",
@@ -69,6 +65,7 @@ export default function AuctionCard({
   imageCount = 5,
   verified = true,
   onProductClick,
+  showLiveBadge = false,
 }) {
   // Real-time clock
   const [now, setNow] = useState(() => Date.now());
@@ -211,31 +208,38 @@ export default function AuctionCard({
           </div>
         </div>
 
-        {/* Countdown */}
+        {/* Countdown or LIVE badge */}
         <div className="auction-bottom">
           <div className="auction-time">
-            <div className="time-details">
-              <div className="countdown">
-                <div className="countdown-box">
-                  <strong>{formatTime(hours)}</strong>
-                  <small>HH</small>
-                </div>
+            {showLiveBadge ? (
+              <div className="auction-live-badge">
+                <span className="auction-live-indicator"></span>
+                <span>LIVE NOW</span>
+              </div>
+            ) : (
+              <div className="time-details">
+                <div className="countdown">
+                  <div className="countdown-box">
+                    <strong>{formatTime(hours)}</strong>
+                    <small>HH</small>
+                  </div>
 
-                <span className="countdown-separator">:</span>
+                  <span className="countdown-separator">:</span>
 
-                <div className="countdown-box">
-                  <strong>{formatTime(minutes)}</strong>
-                  <small>MM</small>
-                </div>
+                  <div className="countdown-box">
+                    <strong>{formatTime(minutes)}</strong>
+                    <small>MM</small>
+                  </div>
 
-                <span className="countdown-separator">:</span>
+                  <span className="countdown-separator">:</span>
 
-                <div className="countdown-box">
-                  <strong>{formatTime(seconds)}</strong>
-                  <small>SS</small>
+                  <div className="countdown-box">
+                    <strong>{formatTime(seconds)}</strong>
+                    <small>SS</small>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

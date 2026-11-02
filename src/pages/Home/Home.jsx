@@ -1,10 +1,9 @@
-import CategoryAuctionGrid from "../../components/CategoryAuctionGrid/CategoryAuctionGrid";
 import ExploreAuctions from "../../components/ExploreAuctions/ExploreAuctions";
+import ExploreLiveAuctions from "../../components/ExploreLiveAuctions/ExploreLiveAuctions";
 import Footer from "../../components/FooterBanner/FooterBanner";
 import Header from "../../components/Header/Header";
 import Hero from "../../components/Hero/Hero";
 import TrendingAuctions from "../../components/TrendingAuctions/TrendingAuctions";
-import TrustBar from "../../components/TrustBar/TrustBar";
 
 import "./Home.css";
 
@@ -54,12 +53,17 @@ export default function Home({
         {/* Hero and existing advertisement section */}
         <Hero />
 
-        {/* All category sections in the requested order */}
-        <div className="auction-content-explore home-category-wrapper">
-          <CategoryAuctionGrid onProductDetails={onProductDetails} />
+        {/* Explore Live Auctions — immediately after Hero */}
+        <div className="auction-content-explore home-explore-more">
+          <div className="auction-left-explore">
+            <ExploreLiveAuctions
+              onViewAllAuctions={onViewAllAuctions}
+              onProductDetails={onProductDetails}
+            />
+          </div>
         </div>
 
-        {/* Explore More — after all category sections, including Sports */}
+        {/* Explore More */}
         <div className="auction-content-explore home-explore-more">
           <div className="auction-left-explore">
             <ExploreAuctions
@@ -68,14 +72,6 @@ export default function Home({
             />
           </div>
         </div>
-
-        {/* Trust section */}
-        <TrustBar />
-
-        {/* How It Works section */}
-        {/* <section id="how-it-works">
-          <HowItWorks />
-        </section> */}
       </main>
 
       <Footer />
